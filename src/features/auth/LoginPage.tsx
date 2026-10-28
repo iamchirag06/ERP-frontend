@@ -10,6 +10,14 @@ import { login } from '@/api/auth';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import {
+  DoodleLaptop,
+  DoodleClipboard,
+  DoodleHeart,
+  DoodleMascot,
+  SparkleIcon,
+  SpeechBubbleTag,
+} from '@/components/ui/Illustrations';
 
 const schema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -36,7 +44,7 @@ const dashboardPathFor = (role: string) =>
 export const LoginPage = () => {
   const navigate = useNavigate();
   const setAuth = useAuthStore((s) => s.setAuth);
-  const [searchParams] = useSearchParams();          // ← moved up
+  const [searchParams] = useSearchParams();
 
   // ─── ALL HOOKS FIRST ──────────────────────────────
   const {
@@ -79,35 +87,132 @@ export const LoginPage = () => {
   }
 
   return (
-    <div className="grid min-h-screen md:grid-cols-2">
-      {/* Left panel — branding */}
-      <div className="hidden flex-col justify-between bg-linear-to-br from-indigo-600 to-violet-700 p-12 text-white md:flex">
-        <div>
-          <div className="grid h-12 w-12 place-items-center rounded-xl bg-white/20 text-2xl font-bold">
-            E
+    <div className="grid min-h-screen bg-[#FFF6D8] lg:grid-cols-12">
+      {/* Left panel — Illustrated Educational Scrapbook Inspiration */}
+      <div className="relative hidden flex-col justify-between overflow-hidden border-r-2 border-[#302365]/15 bg-[#FFFDF7] p-8 lg:col-span-7 lg:flex xl:p-12">
+        {/* Top Header */}
+        <div className="relative z-10">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <DoodleLaptop className="h-12 w-12" />
+              <SparkleIcon className="absolute -top-2 -right-2 h-4 w-4 text-amber-400" />
+            </div>
+            <div>
+              <h1 className="font-heading text-2xl font-bold tracking-tight text-[#302365]">
+                COLLEGE ERP
+              </h1>
+              <p className="text-xs font-semibold uppercase tracking-wider text-[#2587B8]">
+                Interactive Campus Hub
+              </p>
+            </div>
           </div>
-          <h1 className="mt-6 text-4xl font-bold">College ERP</h1>
-          <p className="mt-3 max-w-sm text-white/80">
-            One portal for students, teachers and administration — attendance,
-            assignments, resources, notices, and more.
-          </p>
+
+          {/* Hero Banner inspired by the "PROGRAMS" header in the reference image */}
+          <div className="mt-8 rounded-3xl border-2 border-[#302365]/15 bg-[#DFF2FC]/70 p-6 shadow-[4px_4px_0px_rgba(48,35,101,0.08)]">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-heading text-3xl font-extrabold tracking-wide text-[#302365] sm:text-4xl">
+                    ✏️ LEARN & GROW
+                  </h2>
+                  <SparkleIcon className="h-5 w-5 text-amber-500" />
+                </div>
+                <p className="mt-2 max-w-lg text-sm font-medium leading-relaxed text-[#302365]/80">
+                  A cheerful, all-in-one portal designed for students, teachers,
+                  and faculty to seamlessly collaborate on coursework, timetable,
+                  and attendance.
+                </p>
+              </div>
+              <div className="hidden sm:block">
+                <DoodleClipboard className="h-20 w-20" />
+              </div>
+            </div>
+
+            {/* Pill chips inspired by Reference Image 2 */}
+            <div className="mt-5 flex flex-wrap gap-2">
+              <span className="rounded-full border-2 border-[#99D4F2] bg-[#DFF2FC] px-3 py-1 font-heading text-xs font-bold text-[#17648B] shadow-[1px_1px_0px_#2587B8]">
+                ✦ Attendance
+              </span>
+              <span className="rounded-full border-2 border-[#A3D995] bg-[#E8F5DF] px-3 py-1 font-heading text-xs font-bold text-[#226E30] shadow-[1px_1px_0px_#62A66C]">
+                ✦ Timetable
+              </span>
+              <span className="rounded-full border-2 border-[#F7D37E] bg-[#FFF0C9] px-3 py-1 font-heading text-xs font-bold text-[#995E05] shadow-[1px_1px_0px_#E89D42]">
+                ✦ Assignments
+              </span>
+              <span className="rounded-full border-2 border-[#F5A3BA] bg-[#FCE4EB] px-3 py-1 font-heading text-xs font-bold text-[#C22B58] shadow-[1px_1px_0px_#E87999]">
+                ✦ Doubts & QA
+              </span>
+              <span className="rounded-full border-2 border-[#B7A4E8] bg-[#DCD2F5] px-3 py-1 font-heading text-xs font-bold text-[#463378] shadow-[1px_1px_0px_#7860B8]">
+                ✦ Study Notes
+              </span>
+            </div>
+          </div>
+
+          {/* Educational Showcase Cards inspired by Reference Image 1 problem cards */}
+          <div className="mt-6 space-y-3.5">
+            <div className="flex items-center gap-4 rounded-2xl border-2 border-[#62A66C]/30 bg-[#E8F5DF]/70 p-4 shadow-[3px_3px_0px_rgba(48,35,101,0.05)]">
+              <div className="grid h-8 w-8 place-items-center rounded-lg bg-[#62A66C] font-heading font-bold text-white shadow-xs">
+                01
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-heading text-sm font-bold text-[#302365]">
+                  Real-time Attendance Tracking
+                </h3>
+                <p className="text-xs text-[#302365]/70">
+                  Stay updated on required class credits and attendance quotas.
+                </p>
+              </div>
+              <SpeechBubbleTag className="bg-white text-[10px]">
+                Always on track! 🎯
+              </SpeechBubbleTag>
+            </div>
+
+            <div className="flex items-center gap-4 rounded-2xl border-2 border-[#E89D42]/30 bg-[#FFF0C9]/70 p-4 shadow-[3px_3px_0px_rgba(48,35,101,0.05)]">
+              <div className="grid h-8 w-8 place-items-center rounded-lg bg-[#E89D42] font-heading font-bold text-white shadow-xs">
+                02
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-heading text-sm font-bold text-[#302365]">
+                  Instant Assignment Submissions
+                </h3>
+                <p className="text-xs text-[#302365]/70">
+                  Direct submission links, grading reviews, and teacher feedback.
+                </p>
+              </div>
+              <DoodleMascot className="h-10 w-10 shrink-0" />
+            </div>
+          </div>
         </div>
-        <p className="text-sm text-white/60">
-          © {new Date().getFullYear()} College ERP
-        </p>
+
+        {/* Bottom footer credit */}
+        <div className="relative z-10 mt-8 flex items-center justify-between border-t-2 border-[#302365]/10 pt-4 text-xs font-medium text-[#302365]/70">
+          <div className="flex items-center gap-2">
+            <DoodleHeart className="h-5 w-5" />
+            <span>Built for academic excellence & collaborative learning</span>
+          </div>
+          <span className="font-heading font-bold">© {new Date().getFullYear()} College ERP</span>
+        </div>
       </div>
 
-      {/* Right panel — form */}
-      <div className="flex items-center justify-center p-8">
-        <div className="w-full max-w-sm">
-          <h2 className="text-2xl font-bold text-slate-900">Sign in</h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Use your college email and password.
-          </p>
+      {/* Right panel — Form in cozy scrapbook card */}
+      <div className="flex items-center justify-center p-4 sm:p-8 lg:col-span-5">
+        <div className="w-full max-w-md rounded-3xl border-2 border-[#302365]/15 bg-white p-6 shadow-[6px_6px_0px_rgba(48,35,101,0.1)] sm:p-8">
+          <div className="text-center sm:text-left">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-[#302365]/15 bg-[#FFF6D8] px-3 py-1 font-heading text-xs font-bold text-[#302365]">
+              <SparkleIcon className="h-3.5 w-3.5 text-amber-500" />
+              <span>Campus Gateway</span>
+            </div>
+            <h2 className="mt-3 font-heading text-2xl font-extrabold text-[#302365] sm:text-3xl">
+              Sign In 🎒
+            </h2>
+            <p className="mt-1 text-sm font-medium text-[#302365]/70">
+              Welcome back! Enter your college credentials.
+            </p>
+          </div>
 
           <form className="mt-6 space-y-4" onSubmit={handleSubmit(onSubmit)}>
             <Input
-              label="Email"
+              label="College Email"
               type="email"
               placeholder="you@college.edu"
               autoComplete="email"
@@ -124,10 +229,10 @@ export const LoginPage = () => {
               error={errors.password?.message}
             />
 
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between text-xs">
               <a
                 href="/forgot-password"
-                className="text-indigo-600 hover:underline"
+                className="font-heading font-bold text-[#2587B8] hover:underline"
               >
                 Forgot password?
               </a>
@@ -136,19 +241,21 @@ export const LoginPage = () => {
             <Button
               type="submit"
               loading={mutation.isPending}
-              className="w-full"
+              className="w-full text-base py-2.5"
             >
-              Sign in
+              Sign In to Portal →
             </Button>
           </form>
 
           {/* Divider */}
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200" />
+              <div className="w-full border-t-2 border-[#302365]/10" />
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-slate-400">or</span>
+            <div className="relative flex justify-center text-xs">
+              <span className="rounded-full border border-[#302365]/15 bg-[#FFFDF7] px-3 py-0.5 font-heading font-bold text-[#302365]/60">
+                OR
+              </span>
             </div>
           </div>
 
@@ -159,7 +266,7 @@ export const LoginPage = () => {
               const base = import.meta.env.VITE_API_URL as string;
               window.location.href = `${base}/oauth2/authorization/google`;
             }}
-            className="flex w-full items-center justify-center gap-3 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+            className="flex w-full items-center justify-center gap-3 rounded-xl border-2 border-[#302365]/20 bg-white px-4 py-2.5 font-heading text-sm font-bold text-[#302365] transition hover:bg-[#FFF6D8] hover:border-[#302365]/40 shadow-[2px_2px_0px_rgba(48,35,101,0.06)] active:translate-y-0.5 cursor-pointer"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
               <path
@@ -182,9 +289,11 @@ export const LoginPage = () => {
             Continue with Google
           </button>
 
-          <p className="mt-6 text-center text-xs text-slate-400">
-            {import.meta.env.VITE_API_URL}
-          </p>
+          {import.meta.env.VITE_API_URL && (
+            <p className="mt-5 text-center text-[11px] font-medium text-[#302365]/40 truncate">
+              Connecting to {import.meta.env.VITE_API_URL}
+            </p>
+          )}
         </div>
       </div>
     </div>

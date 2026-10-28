@@ -124,13 +124,21 @@ export const AdminTeachersPage = () => {
     );
   }, [teachers, search]);
 
+  const PASTEL_BG = [
+    'bg-[#DFF2FC]/50 border-[#2587B8]/30',
+    'bg-[#E8F5DF]/50 border-[#62A66C]/30',
+    'bg-[#FFF0C9]/50 border-[#E89D42]/30',
+    'bg-[#FCE4EB]/50 border-[#E87999]/30',
+    'bg-[#DCD2F5]/50 border-[#7860B8]/30',
+  ];
+
   const renderDesktopTable = () => (
-    <div className="hidden md:block">
+    <div className="hidden md:block overflow-hidden rounded-2xl border-2 border-[#302365]/10 bg-white shadow-[3px_3px_0px_rgba(48,35,101,0.06)]">
       <Table>
         <THead>
           <TR>
-            <TH>Name</TH>
-            <TH>Email</TH>
+            <TH>Faculty Member</TH>
+            <TH>Email Address</TH>
             <TH>Department</TH>
             <TH>Designation</TH>
             <TH className="text-right">Actions</TH>
@@ -145,40 +153,40 @@ export const AdminTeachersPage = () => {
                     <img
                       src={t.profileImageUrl}
                       alt={t.name}
-                      className="h-9 w-9 rounded-full object-cover"
+                      className="h-10 w-10 rounded-2xl border-2 border-[#302365]/15 object-cover"
                     />
                   ) : (
-                    <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border-2 border-[#302365]/15 bg-[#DCD2F5] font-heading text-xs font-bold text-[#302365]">
                       {initials(t.name)}
                     </div>
                   )}
                   <div>
-                    <p className="font-medium text-slate-800">{t.name.trim()}</p>
+                    <p className="font-heading font-semibold text-[#302365]">{t.name.trim()}</p>
                     {t.employeeId && (
-                      <p className="text-xs text-slate-400">{t.employeeId}</p>
+                      <p className="text-xs text-[#302365]/60">{t.employeeId}</p>
                     )}
                   </div>
                 </div>
               </TD>
-              <TD className="text-slate-600">{t.email}</TD>
+              <TD className="text-[#302365]/80">{t.email}</TD>
               <TD>
                 {t.department ? (
                   <Badge variant="info">{t.department}</Badge>
                 ) : (
-                  <span className="text-xs italic text-slate-400">—</span>
+                  <span className="text-xs italic text-[#302365]/40">—</span>
                 )}
               </TD>
-              <TD className="text-slate-600">
+              <TD className="text-[#302365]/80">
                 {t.designation && t.designation !== 'N/A' ? (
                   t.designation
                 ) : (
-                  <span className="text-xs italic text-slate-400">—</span>
+                  <span className="text-xs italic text-[#302365]/40">—</span>
                 )}
               </TD>
               <TD className="text-right">
                 <button
                   onClick={() => setDeleting(t)}
-                  className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                  className="rounded-xl border border-transparent p-2 text-slate-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 active:scale-95"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -192,61 +200,64 @@ export const AdminTeachersPage = () => {
 
   const renderMobileCards = () => (
     <div className="space-y-3 md:hidden">
-      {filtered.map((t) => (
-        <Card key={t.id}>
-          <CardBody>
-            <div className="flex items-start gap-3">
-              {t.profileImageUrl ? (
-                <img
-                  src={t.profileImageUrl}
-                  alt={t.name}
-                  className="h-11 w-11 shrink-0 rounded-full object-cover"
-                />
-              ) : (
-                <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700">
-                  {initials(t.name)}
-                </div>
-              )}
+      {filtered.map((t, idx) => (
+        <div
+          key={t.id}
+          className={`rounded-2xl border-2 p-4 shadow-[3px_3px_0px_rgba(48,35,101,0.06)] ${
+            PASTEL_BG[idx % PASTEL_BG.length]
+          }`}
+        >
+          <div className="flex items-start gap-3">
+            {t.profileImageUrl ? (
+              <img
+                src={t.profileImageUrl}
+                alt={t.name}
+                className="h-12 w-12 shrink-0 rounded-2xl border-2 border-[#302365]/15 object-cover"
+              />
+            ) : (
+              <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border-2 border-[#302365]/15 bg-[#DCD2F5] font-heading text-sm font-bold text-[#302365]">
+                {initials(t.name)}
+              </div>
+            )}
 
-              <div className="min-w-0 flex-1">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="truncate font-medium text-slate-800">
-                      {t.name.trim()}
-                    </p>
-                    {t.employeeId && (
-                      <p className="text-xs text-slate-400">{t.employeeId}</p>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => setDeleting(t)}
-                    className="shrink-0 rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-
-                <p className="mt-1 truncate text-xs text-slate-500">{t.email}</p>
-
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {t.department && <Badge variant="info">{t.department}</Badge>}
-                  {t.designation && t.designation !== 'N/A' && (
-                    <Badge variant="default">{t.designation}</Badge>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate font-heading font-bold text-[#302365]">
+                    {t.name.trim()}
+                  </p>
+                  {t.employeeId && (
+                    <p className="text-xs font-medium text-[#302365]/60">{t.employeeId}</p>
                   )}
                 </div>
+                <button
+                  onClick={() => setDeleting(t)}
+                  className="shrink-0 rounded-xl border border-transparent bg-white/70 p-2 text-slate-500 shadow-sm transition hover:bg-white hover:text-red-600 active:scale-95"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+
+              <p className="mt-1 truncate text-xs text-[#302365]/70">{t.email}</p>
+
+              <div className="mt-2.5 flex flex-wrap gap-1.5">
+                {t.department && <Badge variant="info">{t.department}</Badge>}
+                {t.designation && t.designation !== 'N/A' && (
+                  <Badge variant="default">{t.designation}</Badge>
+                )}
               </div>
             </div>
-          </CardBody>
-        </Card>
+          </div>
+        </div>
       ))}
     </div>
   );
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         title="Teachers"
-        subtitle="Manage faculty members across all branches."
+        subtitle="Manage faculty members across all departments."
         action={
           <Button onClick={() => setAddOpen(true)}>
             <Plus className="h-4 w-4" />
@@ -255,20 +266,20 @@ export const AdminTeachersPage = () => {
         }
       />
 
-      <div className="mb-5 flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2">
-        <Search className="h-4 w-4 text-slate-400" />
+      <div className="flex items-center gap-2.5 rounded-2xl border-2 border-[#302365]/10 bg-white px-4 py-2.5 shadow-[3px_3px_0px_rgba(48,35,101,0.06)]">
+        <Search className="h-4 w-4 text-[#302365]/40" />
         <input
-          className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
-          placeholder="Search by name, email, department…"
+          className="w-full bg-transparent text-sm font-medium text-[#302365] outline-none placeholder:text-[#302365]/40"
+          placeholder="Search faculty by name, email, department…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
         {search && (
           <button
             onClick={() => setSearch('')}
-            className="text-xs text-slate-400 hover:text-slate-600"
+            className="text-xs font-semibold text-[#302365]/50 hover:text-[#302365]"
           >
-            clear
+            Clear
           </button>
         )}
       </div>

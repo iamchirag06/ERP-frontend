@@ -149,14 +149,22 @@ export const AdminSubjectsPage = () => {
     });
   };
 
+  const PASTEL_BG = [
+    'bg-[#DFF2FC]/50 border-[#2587B8]/30',
+    'bg-[#E8F5DF]/50 border-[#62A66C]/30',
+    'bg-[#FFF0C9]/50 border-[#E89D42]/30',
+    'bg-[#FCE4EB]/50 border-[#E87999]/30',
+    'bg-[#DCD2F5]/50 border-[#7860B8]/30',
+  ];
+
   const renderDesktopTable = () => (
-    <div className="hidden md:block">
+    <div className="hidden md:block overflow-hidden rounded-2xl border-2 border-[#302365]/10 bg-white shadow-[3px_3px_0px_rgba(48,35,101,0.06)]">
       <Table>
         <THead>
           <TR>
             <TH>Code</TH>
-            <TH>Name</TH>
-            <TH>Teacher</TH>
+            <TH>Subject Name</TH>
+            <TH>Assigned Faculty</TH>
             <TH className="text-right">Actions</TH>
           </TR>
         </THead>
@@ -166,17 +174,17 @@ export const AdminSubjectsPage = () => {
               <TD>
                 <Badge variant="info">{s.code}</Badge>
               </TD>
-              <TD className="font-medium">{s.name}</TD>
+              <TD className="font-heading font-semibold text-[#302365]">{s.name}</TD>
               <TD>
                 {s.teacher ? (
                   <div className="flex flex-col">
-                    <span className="text-slate-700">{s.teacher.name}</span>
-                    <span className="text-xs text-slate-400">
+                    <span className="font-medium text-[#302365]">{s.teacher.name}</span>
+                    <span className="text-xs text-[#302365]/60">
                       {s.teacher.employeeId ?? s.teacher.email}
                     </span>
                   </div>
                 ) : (
-                  <span className="text-xs italic text-slate-400">Unassigned</span>
+                  <span className="text-xs italic text-[#302365]/40">Unassigned</span>
                 )}
               </TD>
               <TD className="text-right">
@@ -201,55 +209,58 @@ export const AdminSubjectsPage = () => {
 
   const renderMobileCards = () => (
     <div className="space-y-3 md:hidden">
-      {subjects!.map((s) => (
-        <Card key={s.id}>
-          <CardBody>
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <Badge variant="info">{s.code}</Badge>
-                <p className="mt-1.5 truncate font-semibold text-slate-800">
-                  {s.name.trim()}
-                </p>
-              </div>
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => {
-                  setAssignFor(s);
-                  setPickedTeacher(s.teacher?.id ?? '');
-                }}
-                className="shrink-0"
-              >
-                <UserPlus className="h-3.5 w-3.5" />
-                Assign
-              </Button>
+      {subjects!.map((s, idx) => (
+        <div
+          key={s.id}
+          className={`rounded-2xl border-2 p-4 shadow-[3px_3px_0px_rgba(48,35,101,0.06)] ${
+            PASTEL_BG[idx % PASTEL_BG.length]
+          }`}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <Badge variant="info">{s.code}</Badge>
+              <p className="mt-1.5 truncate font-heading font-bold text-[#302365]">
+                {s.name.trim()}
+              </p>
             </div>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => {
+                setAssignFor(s);
+                setPickedTeacher(s.teacher?.id ?? '');
+              }}
+              className="shrink-0"
+            >
+              <UserPlus className="h-3.5 w-3.5" />
+              Assign
+            </Button>
+          </div>
 
-            <div className="mt-3 border-t border-slate-100 pt-2">
-              {s.teacher ? (
-                <div className="flex items-center gap-2 text-sm">
-                  <UserPlus className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                  <div className="min-w-0">
-                    <p className="truncate font-medium text-slate-700">
-                      {s.teacher.name}
-                    </p>
-                    <p className="truncate text-xs text-slate-400">
-                      {s.teacher.employeeId ?? s.teacher.email}
-                    </p>
-                  </div>
+          <div className="mt-3 border-t border-[#302365]/10 pt-2.5">
+            {s.teacher ? (
+              <div className="flex items-center gap-2 text-sm">
+                <UserPlus className="h-4 w-4 shrink-0 text-[#2587B8]" />
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-[#302365]">
+                    {s.teacher.name}
+                  </p>
+                  <p className="truncate text-xs text-[#302365]/60">
+                    {s.teacher.employeeId ?? s.teacher.email}
+                  </p>
                 </div>
-              ) : (
-                <p className="text-xs italic text-slate-400">No teacher assigned</p>
-              )}
-            </div>
-          </CardBody>
-        </Card>
+              </div>
+            ) : (
+              <p className="text-xs italic text-[#302365]/50">No teacher assigned</p>
+            )}
+          </div>
+        </div>
       ))}
     </div>
   );
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         title="Subjects"
         subtitle="Manage subjects per branch and semester, and assign teachers."
@@ -261,7 +272,7 @@ export const AdminSubjectsPage = () => {
         }
       />
 
-      <div className="mb-5 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 rounded-2xl border-2 border-[#302365]/10 bg-white p-4 shadow-[3px_3px_0px_rgba(48,35,101,0.06)] sm:grid-cols-2 lg:grid-cols-4">
         <Select
           label="Branch"
           value={effectiveBranchId}
@@ -307,10 +318,10 @@ export const AdminSubjectsPage = () => {
 
       <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Add Subject">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
-            <BookOpen className="mr-1 inline h-3 w-3" />
+          <div className="rounded-xl border border-[#2587B8]/20 bg-[#DFF2FC]/50 px-3.5 py-2.5 text-xs text-[#302365]">
+            <BookOpen className="mr-1.5 inline h-3.5 w-3.5 text-[#2587B8]" />
             Adding to:{' '}
-            <strong>
+            <strong className="font-bold">
               {branches?.find((b) => branchIdOf(b) === effectiveBranchId)?.code} · Semester{' '}
               {semester}
             </strong>
@@ -340,7 +351,7 @@ export const AdminSubjectsPage = () => {
               Cancel
             </Button>
             <Button type="submit" loading={addMutation.isPending}>
-              Save
+              Save Subject
             </Button>
           </div>
         </form>
@@ -355,9 +366,9 @@ export const AdminSubjectsPage = () => {
         title="Assign Teacher"
       >
         <div className="space-y-4">
-          <div className="rounded-lg bg-slate-50 px-3 py-2 text-sm">
-            <p className="text-slate-500">Subject</p>
-            <p className="font-medium text-slate-800">
+          <div className="rounded-xl border border-[#302365]/10 bg-[#FFF0C9]/40 px-3.5 py-2.5 text-sm">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#302365]/60">Subject</p>
+            <p className="font-heading font-bold text-[#302365]">
               {assignFor?.code} — {assignFor?.name}
             </p>
           </div>

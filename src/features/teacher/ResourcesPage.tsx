@@ -28,10 +28,10 @@ import { Loader } from '@/components/feedback/Loader';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ConfirmDialog } from '@/components/feedback/ConfirmDialog';
 import { Badge } from '@/components/ui/Badge';
-import { Card, CardBody } from '@/components/ui/Card';
 import { useAuthStore } from '@/store/authStore';
 import type { StudyMaterialResponse } from '@/types/academic';
 import { cn } from '@/lib/utils';
+import { SparkleIcon } from '@/components/ui/Illustrations';
 
 const schema = z.object({
   title: z.string().min(2, 'Title is required'),
@@ -125,7 +125,7 @@ export const TeacherResourcesPage = () => {
       );
     },
     onSuccess: () => {
-      toast.success('Material uploaded');
+      toast.success('Study material uploaded! 📚');
       qc.invalidateQueries({ queryKey: ['resources', effectiveSubjectId] });
       reset();
       setPickedFile(null);
@@ -155,10 +155,10 @@ export const TeacherResourcesPage = () => {
   const onSubmit = (data: FormData) => uploadMutation.mutate(data);
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
-        title="Study Resources"
-        subtitle="Upload and manage study materials for your subjects."
+        title="Course Resources & Materials 📑"
+        subtitle="Upload and manage lecture notes, slides, and syllabus files for your classes."
         action={
           <Button
             onClick={() => setUploadOpen(true)}
@@ -171,9 +171,9 @@ export const TeacherResourcesPage = () => {
       />
 
       {/* Subject selector */}
-      <div className="mb-5 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2">
+      <div className="grid gap-4 rounded-3xl border-2 border-[#302365]/12 bg-white p-5 shadow-[3px_3px_0px_rgba(48,35,101,0.06)] sm:grid-cols-2">
         <Select
-          label="Subject"
+          label="Target Subject"
           value={effectiveSubjectId}
           onChange={(e) => setSubjectId(e.target.value)}
           disabled={loadingSubjects || !subjects?.length}
@@ -188,9 +188,10 @@ export const TeacherResourcesPage = () => {
 
         {currentSubject && (
           <div className="flex items-end">
-            <p className="text-xs text-slate-500">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#302365]/15 bg-[#FFF6D8] px-3.5 py-1.5 font-heading text-xs font-bold text-[#302365]">
+              <SparkleIcon className="h-3.5 w-3.5 text-amber-500" />
               {currentSubject.branchName} · Semester {currentSubject.semester}
-            </p>
+            </span>
           </div>
         )}
       </div>
@@ -199,80 +200,86 @@ export const TeacherResourcesPage = () => {
       {!subjects?.length ? (
         <EmptyState
           title="No subjects assigned"
-          subtitle="Ask your admin to assign you a subject first."
+          subtitle="Ask your admin to assign you a subject first before uploading materials."
         />
       ) : loadingResources ? (
         <Loader />
       ) : !resources?.length ? (
         <EmptyState
-          title="No materials yet"
-          subtitle="Upload the first study material for this subject."
+          title="No study materials yet"
+          subtitle="Click 'Upload Material' to share the first file with your students."
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {resources.map((r) => (
-        <Card key={r.id}>
-            <CardBody>
-            <div className="flex items-start gap-3">
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
-                <FileText className="h-5 w-5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                <h3 className="truncate font-semibold text-slate-800">{r.title}</h3>
-                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
-                    {r.unitTag && <Badge variant="info">{r.unitTag}</Badge>}
-                    <span>{formatDate(r.uploadedAt)}</span>
-                </div>
-                {r.description && (
-  <p className="mt-1 line-clamp-2-break-words text-xs text-slate-500">
-    {r.description}
-  </p>
-)}
-                </div>
-            </div>
-
-            <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
-                <div className="min-w-0">
-                <p className="truncate text-xs text-slate-400">
-  By {r.uploadedBy?.name?.trim() ?? 'Unknown'}
-</p>
+            <div
+              key={r.id}
+              className="flex flex-col justify-between rounded-3xl border-2 border-[#302365]/12 bg-white p-5 shadow-[3px_3px_0px_rgba(48,35,101,0.06)] transition hover:-translate-y-1 hover:shadow-[5px_5px_0px_rgba(48,35,101,0.1)]"
+            >
+              <div>
+                <div className="flex items-start gap-3.5">
+                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border-2 border-[#2587B8] bg-[#DFF2FC] text-[#2587B8] shadow-xs">
+                    <FileText className="h-6 w-6" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate font-heading text-base font-bold text-[#302365]">
+                      {r.title}
+                    </h3>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold text-[#302365]/70">
+                      {r.unitTag && <Badge variant="lavender">{r.unitTag}</Badge>}
+                      <span>{formatDate(r.uploadedAt)}</span>
+                    </div>
+                    {r.description && (
+                      <p className="mt-1.5 line-clamp-2 break-words text-xs font-medium text-[#302365]/70 leading-relaxed">
+                        {r.description}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
-                <div className="flex gap-1">
-                <a
+                <div className="mt-3.5 text-xs font-semibold text-[#302365]/60">
+                  Uploaded by {r.uploadedBy?.name?.trim() ?? 'Faculty'}
+                </div>
+              </div>
+
+              <div className="mt-4 flex items-center justify-between border-t-2 border-[#302365]/8 pt-3.5">
+                <div className="flex items-center gap-1.5">
+                  <a
                     href={r.fileUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="rounded-lg p-2 text-slate-400 hover:bg-indigo-50 hover:text-indigo-600"
-                    title="Open"
-                >
+                    className="rounded-xl border border-[#302365]/15 bg-[#DFF2FC] p-2 text-[#2587B8] hover:bg-[#ccebf9] transition shadow-xs"
+                    title="Open Document"
+                  >
                     <ExternalLink className="h-4 w-4" />
-                </a>
-                <a
+                  </a>
+                  <a
                     href={r.fileUrl}
                     download
-                    className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-                    title="Download"
-                >
+                    className="rounded-xl border border-[#302365]/15 bg-white p-2 text-[#302365] hover:bg-[#FFF6D8] transition shadow-xs"
+                    title="Download File"
+                  >
                     <Download className="h-4 w-4" />
-                </a>
-                <button
-                    onClick={() => setDeleting(r)}
-                    className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600"
-                    title="Delete"
-                >
-                    <Trash2 className="h-4 w-4" />
-                </button>
+                  </a>
                 </div>
+
+                <button
+                  onClick={() => setDeleting(r)}
+                  className="rounded-xl border border-[#302365]/15 bg-white p-2 text-[#302365] hover:bg-[#FCE4EB] hover:text-[#C22B58] transition cursor-pointer shadow-xs"
+                  title="Delete Material"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
             </div>
-            </CardBody>
-        </Card>
-        ))}
+          ))}
         </div>
       )}
 
       {isFetching && !loadingResources && (
-        <p className="mt-2 text-center text-xs text-slate-400">Refreshing…</p>
+        <p className="text-center font-heading text-xs font-bold text-[#302365]/50">
+          Syncing course files…
+        </p>
       )}
 
       {/* Upload modal */}
@@ -283,25 +290,25 @@ export const TeacherResourcesPage = () => {
           setPickedFile(null);
           reset();
         }}
-        title="Upload Study Material"
+        title="Upload Study Material 📤"
       >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
-            Uploading to:{' '}
-            <strong>
+          <div className="rounded-2xl border-2 border-[#302365]/10 bg-[#FFF6D8] px-4 py-2 text-xs font-semibold text-[#302365]">
+            Target Subject:{' '}
+            <strong className="text-[#2587B8]">
               {currentSubject?.code} — {currentSubject?.name?.trim()}
             </strong>
           </div>
 
           <Input
-            label="Title"
-            placeholder="Chapter 3 — Sorting Algorithms"
+            label="Material Title"
+            placeholder="e.g. Unit 3 — Binary Search Trees & AVL Trees"
             {...register('title')}
             error={errors.title?.message}
           />
 
-          <Select label="Unit (optional)" {...register('unit')}>
-            <option value="">— No unit —</option>
+          <Select label="Course Unit / Section" {...register('unit')}>
+            <option value="">— Select unit or category —</option>
             {UNITS.map((u) => (
               <option key={u} value={u}>
                 {u}
@@ -311,8 +318,8 @@ export const TeacherResourcesPage = () => {
 
           {/* File picker */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
-              File
+            <label className="mb-1.5 block font-heading text-xs font-bold uppercase tracking-wider text-[#302365]">
+              Choose Document File
             </label>
             <div
               onClick={() => fileInputRef.current?.click()}
@@ -323,34 +330,34 @@ export const TeacherResourcesPage = () => {
                 if (f) setPickedFile(f);
               }}
               className={cn(
-                'flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-4 text-center transition sm:p-6',
+                'flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed p-6 text-center transition',
                 pickedFile
-                  ? 'border-indigo-300 bg-indigo-50'
-                  : 'border-slate-300 bg-slate-50 hover:border-indigo-400 hover:bg-indigo-50/50'
+                  ? 'border-[#2587B8] bg-[#DFF2FC]/50'
+                  : 'border-[#302365]/20 bg-[#FFFDF7] hover:border-[#2587B8] hover:bg-[#DFF2FC]/30'
               )}
             >
               <Upload
                 className={cn(
-                  'h-6 w-6',
-                  pickedFile ? 'text-indigo-600' : 'text-slate-400'
+                  'h-8 w-8',
+                  pickedFile ? 'text-[#2587B8]' : 'text-[#302365]/50'
                 )}
               />
               {pickedFile ? (
                 <>
-                  <p className="text-sm font-medium text-indigo-800">
+                  <p className="font-heading text-sm font-bold text-[#302365]">
                     {pickedFile.name}
                   </p>
-                  <p className="text-xs text-indigo-600">
-                    {formatBytes(pickedFile.size)} · Click to change
+                  <p className="text-xs font-semibold text-[#2587B8]">
+                    {formatBytes(pickedFile.size)} · Click to change file
                   </p>
                 </>
               ) : (
                 <>
-                  <p className="text-sm font-medium text-slate-700">
-                    Click to browse or drag a file here
+                  <p className="font-heading text-sm font-bold text-[#302365]">
+                    Click to browse or drop file here
                   </p>
-                  <p className="text-xs text-slate-500">
-                    PDF, PPT, DOC, or image — up to your backend limit
+                  <p className="text-xs font-medium text-[#302365]/60">
+                    PDF, PPT, DOC, or image files
                   </p>
                 </>
               )}
@@ -368,25 +375,25 @@ export const TeacherResourcesPage = () => {
           </div>
 
           <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:justify-end">
-  <Button
-    type="button"
-    variant="secondary"
-    onClick={() => {
-      setUploadOpen(false);
-      setPickedFile(null);
-      reset();
-    }}
-  >
-    Cancel
-  </Button>
-  <Button
-    type="submit"
-    loading={uploadMutation.isPending}
-    disabled={!pickedFile}
-  >
-    Upload
-  </Button>
-</div>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                setUploadOpen(false);
+                setPickedFile(null);
+                reset();
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              loading={uploadMutation.isPending}
+              disabled={!pickedFile}
+            >
+              Upload Material
+            </Button>
+          </div>
         </form>
       </Modal>
 

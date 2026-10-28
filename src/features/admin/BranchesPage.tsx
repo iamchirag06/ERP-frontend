@@ -93,31 +93,42 @@ export const AdminBranchesPage = () => {
     mutation.mutate(data);
   };
 
+  const PASTEL_BG = [
+    'bg-[#DFF2FC]/50 border-[#2587B8]/30',
+    'bg-[#E8F5DF]/50 border-[#62A66C]/30',
+    'bg-[#FFF0C9]/50 border-[#E89D42]/30',
+    'bg-[#FCE4EB]/50 border-[#E87999]/30',
+    'bg-[#DCD2F5]/50 border-[#7860B8]/30',
+  ];
+
   const renderMobileCards = () => (
     <div className="space-y-3 md:hidden">
       {branches!.map((b, idx) => (
-        <Card key={branchKey(b, idx)}>
-          <CardBody className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <Badge variant="info">{b.code}</Badge>
-              <p className="mt-1.5 truncate font-medium text-slate-800">
-                {b.name}
-              </p>
-            </div>
-            <button
-              className="shrink-0 rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600"
-              onClick={() => toast.error('Delete not supported by backend yet')}
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </CardBody>
-        </Card>
+        <div
+          key={branchKey(b, idx)}
+          className={`flex items-center justify-between gap-3 rounded-2xl border-2 p-4 shadow-[3px_3px_0px_rgba(48,35,101,0.06)] ${
+            PASTEL_BG[idx % PASTEL_BG.length]
+          }`}
+        >
+          <div className="min-w-0">
+            <Badge variant="info">{b.code}</Badge>
+            <p className="mt-1.5 truncate font-heading font-bold text-[#302365]">
+              {b.name}
+            </p>
+          </div>
+          <button
+            className="shrink-0 rounded-xl border border-red-200 bg-white p-2.5 text-slate-400 shadow-sm transition hover:bg-red-50 hover:text-red-600 active:scale-95"
+            onClick={() => toast.error('Delete not supported by backend yet')}
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
       ))}
     </div>
   );
 
   const renderDesktopTable = () => (
-    <div className="hidden md:block">
+    <div className="hidden md:block overflow-hidden rounded-2xl border-2 border-[#302365]/10 bg-white shadow-[3px_3px_0px_rgba(48,35,101,0.06)]">
       <Table>
         <THead>
           <TR>
@@ -132,10 +143,10 @@ export const AdminBranchesPage = () => {
               <TD>
                 <Badge variant="info">{b.code}</Badge>
               </TD>
-              <TD className="font-medium">{b.name}</TD>
+              <TD className="font-heading font-semibold text-[#302365]">{b.name}</TD>
               <TD className="text-right">
                 <button
-                  className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                  className="rounded-xl border border-transparent p-2 text-slate-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 active:scale-95"
                   onClick={() =>
                     toast.error('Delete not supported by backend yet')
                   }
@@ -151,10 +162,10 @@ export const AdminBranchesPage = () => {
   );
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         title="Branches"
-        subtitle="Departments and streams (e.g. CSE, ECE, MECH)"
+        subtitle="Departments and academic streams (e.g. CSE, ECE, MECH)"
         action={
           <Button onClick={() => setOpen(true)}>
             <Plus className="h-4 w-4" />
@@ -181,7 +192,7 @@ export const AdminBranchesPage = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Input
             label="Branch Name"
-            placeholder="Computer Science"
+            placeholder="Computer Science & Engineering"
             {...register('name')}
             error={errors.name?.message}
           />
@@ -200,7 +211,7 @@ export const AdminBranchesPage = () => {
               Cancel
             </Button>
             <Button type="submit" loading={mutation.isPending}>
-              Save
+              Save Branch
             </Button>
           </div>
         </form>

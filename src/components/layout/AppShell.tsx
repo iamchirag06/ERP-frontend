@@ -7,11 +7,11 @@ export const AppShell = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-[#FFF6D8]">
       {/* Mobile backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-30 bg-slate-900/50 md:hidden"
+          className="fixed inset-0 z-30 bg-[#302365]/40 backdrop-blur-[2px] md:hidden transition-opacity"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -22,8 +22,10 @@ export const AppShell = () => {
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0">
         <Topbar onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
-          <Outlet />
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+          <div className="mx-auto max-w-7xl">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

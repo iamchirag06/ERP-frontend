@@ -10,12 +10,12 @@ import {
 import { getResourcesBySubject } from '@/api/resources';
 import { getMySubjects } from '@/api/student';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { Card, CardBody } from '@/components/ui/Card';
 import { Loader } from '@/components/feedback/Loader';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { useAuthStore } from '@/store/authStore';
 import type { StudyMaterialResponse } from '@/types/academic';
 import { cn } from '@/lib/utils';
+import { SparkleIcon } from '@/components/ui/Illustrations';
 
 const UNITS_ORDER = [
   'Unit 1',
@@ -35,26 +35,25 @@ const formatDate = (iso: string) =>
     year: 'numeric',
   });
 
-// Friendly file type label from MIME
 const fileTypeLabel = (mime: string | null): string => {
-  if (!mime) return 'File';
+  if (!mime) return 'FILE';
   if (mime.includes('pdf')) return 'PDF';
   if (mime.includes('presentation') || mime.includes('powerpoint')) return 'PPT';
   if (mime.includes('word') || mime.includes('document')) return 'DOC';
-  if (mime.includes('image')) return 'Image';
-  if (mime.includes('zip')) return 'Archive';
-  return 'File';
+  if (mime.includes('image')) return 'IMG';
+  if (mime.includes('zip')) return 'ZIP';
+  return 'FILE';
 };
 
 const fileTypeColor = (mime: string | null): string => {
-  if (!mime) return 'bg-slate-100 text-slate-600';
-  if (mime.includes('pdf')) return 'bg-red-50 text-red-600';
+  if (!mime) return 'bg-[#F4EFE0] text-[#302365] border-[#302365]/20';
+  if (mime.includes('pdf')) return 'bg-[#FCE4EB] text-[#C22B58] border-[#F5A3BA]';
   if (mime.includes('presentation') || mime.includes('powerpoint'))
-    return 'bg-orange-50 text-orange-600';
+    return 'bg-[#FFF0C9] text-[#995E05] border-[#F7D37E]';
   if (mime.includes('word') || mime.includes('document'))
-    return 'bg-blue-50 text-blue-600';
-  if (mime.includes('image')) return 'bg-emerald-50 text-emerald-600';
-  return 'bg-slate-100 text-slate-600';
+    return 'bg-[#DFF2FC] text-[#17648B] border-[#99D4F2]';
+  if (mime.includes('image')) return 'bg-[#E8F5DF] text-[#226E30] border-[#A3D995]';
+  return 'bg-[#DCD2F5] text-[#463378] border-[#B7A4E8]';
 };
 
 export const StudentResourcesPage = () => {
@@ -115,25 +114,25 @@ export const StudentResourcesPage = () => {
   }, [filtered]);
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
-        title="Study Materials"
-        subtitle="Notes, slides and reference material from your teachers."
+        title="Study Materials & Notes 📚"
+        subtitle="Download lecture slides, syllabus notes, and exam reference sheets."
       />
 
-      {/* Filters */}
-      <div className="mb-5 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Filters box */}
+      <div className="grid gap-4 rounded-3xl border-2 border-[#302365]/12 bg-white p-5 shadow-[3px_3px_0px_rgba(48,35,101,0.06)] sm:grid-cols-2 lg:grid-cols-4">
         <div className="lg:col-span-2">
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Subject
+          <label className="mb-1.5 block font-heading text-xs font-bold uppercase tracking-wider text-[#302365]">
+            Select Subject
           </label>
           <select
             value={effectiveSubjectId}
             onChange={(e) => setSubjectId(e.target.value)}
             disabled={!subjects?.length}
-            className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+            className="h-11 w-full rounded-xl border-2 border-[#302365]/20 bg-white px-3.5 font-heading text-sm font-medium text-[#302365] outline-none transition focus:border-[#302365] focus:ring-2 focus:ring-[#DCD2F5]"
           >
-            {!subjects?.length && <option value="">No subjects</option>}
+            {!subjects?.length && <option value="">No subjects found</option>}
             {subjects?.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.code} — {s.name.trim()}
@@ -143,96 +142,98 @@ export const StudentResourcesPage = () => {
         </div>
 
         <div className="lg:col-span-2">
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Search
+          <label className="mb-1.5 block font-heading text-xs font-bold uppercase tracking-wider text-[#302365]">
+            Search Resources
           </label>
-          <div className="flex h-10 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3">
-            <Search className="h-4 w-4 shrink-0 text-slate-400" />
+          <div className="flex h-11 items-center gap-2.5 rounded-xl border-2 border-[#302365]/20 bg-white px-3.5 shadow-xs">
+            <Search className="h-4 w-4 shrink-0 text-[#302365]/50" />
             <input
               type="text"
-              placeholder="Search by title, unit or teacher…"
+              placeholder="Search by topic, unit name, or teacher…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
+              className="w-full bg-transparent font-medium text-sm text-[#302365] placeholder:text-[#302365]/40 outline-none"
             />
             {search && (
               <button
                 onClick={() => setSearch('')}
-                className="text-xs text-slate-400 hover:text-slate-600"
+                className="rounded-lg border border-[#302365]/20 bg-[#FFF6D8] px-2 py-0.5 font-heading text-xs font-bold text-[#302365] hover:bg-[#FCE4EB]"
               >
-                clear
+                Clear
               </button>
             )}
           </div>
         </div>
       </div>
 
-      {/* Header line */}
+      {/* Header counter */}
       {!isLoading && resources?.length ? (
-  <p className="mb-3 truncate text-xs text-slate-500">
-    {filtered.length} of {resources.length} material
-    {resources.length === 1 ? '' : 's'}
-    {currentSubject && (
-      <>
-        {' '}
-        · {currentSubject.code}
-      </>
-    )}
-  </p>
-) : null}
+        <p className="font-heading text-xs font-semibold text-[#302365]/70">
+          Showing {filtered.length} of {resources.length} resource
+          {resources.length === 1 ? '' : 's'}
+          {currentSubject && (
+            <span className="ml-1 text-[#2587B8]">
+              · {currentSubject.code} ({currentSubject.name.trim()})
+            </span>
+          )}
+        </p>
+      ) : null}
 
       {/* List */}
       {isLoading ? (
         <Loader />
       ) : !resources?.length ? (
         <EmptyState
-          title="No materials for this subject"
-          subtitle="Your teacher hasn't uploaded anything yet."
+          title="No study materials for this subject"
+          subtitle="Your teachers haven't uploaded files for this class yet."
         />
       ) : !filtered.length ? (
         <EmptyState
-          title="No matching materials"
-          subtitle="Try a different search term."
+          title="No matching materials found"
+          subtitle="Try checking for another keyword or unit name."
         />
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-7">
           {grouped.map(([unit, items]) => (
             <div key={unit}>
-              <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
-                <BookOpen className="h-4 w-4" />
-                {unit}
-                <span className="ml-1 text-xs font-normal text-slate-400">
-                  ({items.length})
+              <div className="mb-3.5 flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-[#2587B8] bg-[#DFF2FC] px-3.5 py-1 font-heading text-xs font-bold text-[#2587B8] shadow-[1px_1px_0px_#2587B8]">
+                  <BookOpen className="h-3.5 w-3.5" />
+                  {unit} ({items.length})
                 </span>
-              </h2>
+                <SparkleIcon className="h-3.5 w-3.5 text-amber-500" />
+              </div>
 
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {items.map((r) => (
-                  <Card key={r.id} className="group transition hover:shadow-md">
-                    <CardBody>
+                  <div
+                    key={r.id}
+                    className="flex flex-col justify-between rounded-3xl border-2 border-[#302365]/12 bg-white p-5 shadow-[3px_3px_0px_rgba(48,35,101,0.06)] transition hover:-translate-y-1 hover:shadow-[5px_5px_0px_rgba(48,35,101,0.1)]"
+                  >
+                    <div>
                       <div className="flex items-start gap-3">
                         <div
                           className={cn(
-                            'grid h-10 w-10 shrink-0 place-items-center rounded-lg text-xs font-bold',
+                            'grid h-11 w-11 shrink-0 place-items-center rounded-2xl border-2 font-heading text-xs font-bold shadow-xs',
                             fileTypeColor(r.fileType)
                           )}
                         >
                           {fileTypeLabel(r.fileType)}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h3 className="truncate font-semibold text-slate-800">
+                          <h3 className="font-heading text-base font-bold text-[#302365] line-clamp-2">
                             {r.title}
                           </h3>
                           {r.description && (
-  <p className="mt-0.5 line-clamp-2-break-words text-xs text-slate-500">
-    {r.description}
-  </p>
-)}
+                            <p className="mt-1 text-xs font-medium text-[#302365]/70 line-clamp-2 break-words leading-relaxed">
+                              {r.description}
+                            </p>
+                          )}
                         </div>
                       </div>
 
-                      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
-                        <span>{formatDate(r.uploadedAt)}</span>
+                      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold text-[#302365]/60">
+                        <span>Uploaded {formatDate(r.uploadedAt)}</span>
                         {r.uploadedBy?.name && (
                           <span className="inline-flex items-center gap-1">
                             <User className="h-3 w-3" />
@@ -240,28 +241,28 @@ export const StudentResourcesPage = () => {
                           </span>
                         )}
                       </div>
+                    </div>
 
-                      <div className="mt-4 flex items-center gap-2 border-t border-slate-100 pt-3">
-                        <a
-                          href={r.fileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100"
-                        >
-                          <ExternalLink className="h-3.5 w-3.5" />
-                          Open
-                        </a>
-                        <a
-                          href={r.fileUrl}
-                          download
-                          className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
-                        >
-                          <Download className="h-3.5 w-3.5" />
-                          Download
-                        </a>
-                      </div>
-                    </CardBody>
-                  </Card>
+                    <div className="mt-4 flex items-center gap-2 border-t-2 border-[#302365]/8 pt-3.5">
+                      <a
+                        href={r.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border-2 border-[#2587B8] bg-[#DFF2FC] px-3 py-2 font-heading text-xs font-bold text-[#2587B8] transition hover:bg-[#cbeaf9] shadow-[1px_1px_0px_#2587B8]"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        Preview
+                      </a>
+                      <a
+                        href={r.fileUrl}
+                        download
+                        className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border-2 border-[#302365]/20 bg-white px-3 py-2 font-heading text-xs font-bold text-[#302365] transition hover:bg-[#FFF6D8] shadow-[1px_1px_0px_rgba(48,35,101,0.08)]"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        Download
+                      </a>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
@@ -270,7 +271,9 @@ export const StudentResourcesPage = () => {
       )}
 
       {isFetching && !isLoading && (
-        <p className="mt-2 text-center text-xs text-slate-400">Refreshing…</p>
+        <p className="text-center font-heading text-xs font-bold text-[#302365]/50">
+          Syncing latest course materials…
+        </p>
       )}
     </div>
   );

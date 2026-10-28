@@ -24,7 +24,6 @@ import {
 } from '@/api/assignments';
 import { getMySubjects } from '@/api/student';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
@@ -35,6 +34,7 @@ import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/Table';
 import { useAuthStore } from '@/store/authStore';
 import { cn } from '@/lib/utils';
 import type { AssignmentResponse } from '@/types/academic';
+import { SparkleIcon } from '@/components/ui/Illustrations';
 
 const submitSchema = z.object({
   submissionLink: z.string().url('Must be a valid URL (e.g. Google Drive link)'),
@@ -101,21 +101,21 @@ export const StudentAssignmentsPage = () => {
       });
     },
     onSuccess: () => {
-      toast.success('Assignment submitted!');
-      setSubmittedIds((prev) => new Set(prev).add(submittingFor!.id));
-      qc.invalidateQueries({ queryKey: ['my-submissions'] });
-      reset();
-      setSubmittingFor(null);
-    },
-    onError: (e: AxiosError<ApiError>) => {
-      const raw = (e.response?.data?.error ?? e.response?.data?.message ?? '').toString();
-      let msg = raw || 'Failed to submit assignment';
-      if (raw.toLowerCase().includes('duplicate')) {
-        msg = 'You have already submitted this assignment.';
-      } else if (raw.length > 200) {
-        msg = 'Submission failed. Check the link and try again.';
+      toast.success('Assignment submitted successfully! 🎉');
+      if (submittingFor) {
+        setSubmittedIds((prev) => new Set(prev).add(submittingFor.id));
       }
-      console.error('submit-assignment failed:', e.response?.data);
+      setSubmittingFor(null);
+      reset();
+      qc.invalidateQueries({ queryKey: ['my-submissions'] });
+      qc.invalidateQueries({ queryKey: ['assignments'] });
+      qc.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+    onError: (err: AxiosError<ApiError>) => {
+      const msg =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        'Failed to submit assignment';
       toast.error(msg);
     },
   });
@@ -123,7 +123,7 @@ export const StudentAssignmentsPage = () => {
   const onSubmit = (data: SubmitForm) => submitMutation.mutate(data);
 
   const stats = useMemo(() => {
-    if (!assignments) return { open: 0, closed: 0 };
+    if (!assignments?.length) return { open: 0, closed: 0 };
     const now = Date.now();
     let open = 0;
     let closed = 0;
@@ -135,54 +135,54 @@ export const StudentAssignmentsPage = () => {
   }, [assignments]);
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
-        title="Assignments"
-        subtitle="View, submit and track your assignments."
+        title="Assignments & Submissions 📝"
+        subtitle="View course assignments, track deadlines, and submit your homework."
       />
 
-      {/* Tabs — horizontally scrollable */}
-      <div className="mb-5 flex items-center gap-2 overflow-x-auto border-b border-slate-200">
+      {/* Tabs styled as playful pills */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
         <button
           onClick={() => setTab('assignments')}
           className={cn(
-            'flex shrink-0 items-center gap-2 px-4 py-2 text-sm font-medium transition',
+            'flex shrink-0 items-center gap-2 rounded-2xl border-2 px-5 py-2.5 font-heading text-sm font-bold transition-all duration-150 cursor-pointer shadow-[2px_2px_0px_rgba(48,35,101,0.06)]',
             tab === 'assignments'
-              ? 'border-b-2 border-indigo-600 text-indigo-600'
-              : 'text-slate-500 hover:text-slate-800'
+              ? 'border-[#2587B8] bg-[#DFF2FC] text-[#2587B8] shadow-[2px_2px_0px_#2587B8]'
+              : 'border-[#302365]/15 bg-white text-[#302365]/70 hover:bg-[#FFF6D8] hover:text-[#302365]'
           )}
         >
           <BookOpen className="h-4 w-4" />
-          Assignments
+          Active Assignments
         </button>
         <button
           onClick={() => setTab('submissions')}
           className={cn(
-            'flex shrink-0 items-center gap-2 px-4 py-2 text-sm font-medium transition',
+            'flex shrink-0 items-center gap-2 rounded-2xl border-2 px-5 py-2.5 font-heading text-sm font-bold transition-all duration-150 cursor-pointer shadow-[2px_2px_0px_rgba(48,35,101,0.06)]',
             tab === 'submissions'
-              ? 'border-b-2 border-indigo-600 text-indigo-600'
-              : 'text-slate-500 hover:text-slate-800'
+              ? 'border-[#62A66C] bg-[#E8F5DF] text-[#226E30] shadow-[2px_2px_0px_#62A66C]'
+              : 'border-[#302365]/15 bg-white text-[#302365]/70 hover:bg-[#FFF6D8] hover:text-[#302365]'
           )}
         >
           <FileText className="h-4 w-4" />
-          My Submissions
+          My Submissions History
         </button>
       </div>
 
       {/* ─── Assignments tab ──────────────────────────────── */}
       {tab === 'assignments' && (
-        <>
-          <div className="mb-5 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
-                Subject
+        <div className="space-y-4">
+          <div className="flex flex-col gap-4 rounded-3xl border-2 border-[#302365]/12 bg-white p-5 shadow-[3px_3px_0px_rgba(48,35,101,0.06)] sm:flex-row sm:items-end sm:justify-between">
+            <div className="max-w-md w-full">
+              <label className="mb-1.5 block font-heading text-xs font-bold uppercase tracking-wider text-[#302365]">
+                Filter by Subject
               </label>
               <select
                 value={effectiveSubjectId}
                 onChange={(e) => setSubjectId(e.target.value)}
-                className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                className="h-11 w-full rounded-xl border-2 border-[#302365]/20 bg-white px-3.5 font-heading text-sm font-medium text-[#302365] outline-none transition focus:border-[#302365] focus:ring-2 focus:ring-[#DCD2F5]"
               >
-                {!subjects?.length && <option value="">No subjects</option>}
+                {!subjects?.length && <option value="">No subjects found</option>}
                 {subjects?.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.code} — {s.name.trim()}
@@ -192,9 +192,9 @@ export const StudentAssignmentsPage = () => {
             </div>
 
             {assignments?.length ? (
-              <div className="flex items-end gap-3 text-xs">
-                <Badge variant="success">{stats.open} open</Badge>
-                <Badge variant="default">{stats.closed} closed</Badge>
+              <div className="flex items-center gap-2 text-xs">
+                <Badge variant="success">✦ {stats.open} Open</Badge>
+                <Badge variant="danger">{stats.closed} Closed</Badge>
               </div>
             ) : null}
           </div>
@@ -207,113 +207,116 @@ export const StudentAssignmentsPage = () => {
               subtitle="Nothing assigned yet — check back later."
             />
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3.5">
               {assignments.map((a) => {
                 const overdue = new Date(a.deadline).getTime() < Date.now();
                 const submitted = submittedIds.has(a.id);
                 return (
-                  <Card key={a.id}>
-                    <CardBody className="p-4 sm:p-5">
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
-                        <div className="flex items-start gap-3 sm:contents">
-                          <div
-                            className={cn(
-                              'grid h-10 w-10 shrink-0 place-items-center rounded-lg sm:h-11 sm:w-11',
-                              overdue
-                                ? 'bg-red-50 text-red-600'
-                                : 'bg-indigo-50 text-indigo-600'
-                            )}
-                          >
-                            <FileText className="h-5 w-5" />
-                          </div>
-
-                          <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <h3 className="font-semibold text-slate-800">
-                                {a.title}
-                              </h3>
-                              {overdue ? (
-                                <Badge variant="danger">Closed</Badge>
-                              ) : (
-                                <Badge variant="success">Open</Badge>
-                              )}
-                              {submitted && (
-                                <Badge variant="info">
-                                  <CheckCircle2 className="mr-1 h-3 w-3" />
-                                  Submitted
-                                </Badge>
-                              )}
-                            </div>
-
-                            {a.description && (
-                              <p className="mt-1 text-sm text-slate-600">
-                                {a.description}
-                              </p>
-                            )}
-
-                            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
-                              <span
-                                className={cn(
-                                  'inline-flex items-center gap-1',
-                                  overdue && 'font-medium text-red-600'
-                                )}
-                              >
-                                <Clock className="h-3 w-3" />
-                                Due {formatDateTime(a.deadline)}
-                              </span>
-                              {a.teacher && <span>By {a.teacher.name.trim()}</span>}
-                              {a.attachmentUrl && (
-                                <a
-                                  href={a.attachmentUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1 text-indigo-600 hover:underline"
-                                >
-                                  <Paperclip className="h-3 w-3" />
-                                  View attachment
-                                </a>
-                              )}
-                            </div>
-                          </div>
+                  <div
+                    key={a.id}
+                    className="rounded-3xl border-2 border-[#302365]/12 bg-white p-5 shadow-[3px_3px_0px_rgba(48,35,101,0.06)] transition hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_rgba(48,35,101,0.1)]"
+                  >
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="flex items-start gap-3.5">
+                        <div
+                          className={cn(
+                            'grid h-12 w-12 shrink-0 place-items-center rounded-2xl border-2 shadow-xs',
+                            overdue
+                              ? 'border-[#E87999] bg-[#FCE4EB] text-[#C22B58]'
+                              : 'border-[#2587B8] bg-[#DFF2FC] text-[#2587B8]'
+                          )}
+                        >
+                          <FileText className="h-6 w-6" />
                         </div>
 
-                        <div className="shrink-0 sm:ml-auto">
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              setSubmittingFor(a);
-                              reset({ submissionLink: '' });
-                            }}
-                            disabled={overdue && !submitted}
-                            variant={submitted ? 'secondary' : 'primary'}
-                            className="w-full sm:w-auto"
-                          >
-                            {submitted ? (
-                              <>
-                                <CheckCircle2 className="h-3.5 w-3.5" />
-                                Resubmit
-                              </>
-                            ) : overdue ? (
-                              <>
-                                <XCircle className="h-3.5 w-3.5" />
-                                Closed
-                              </>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="font-heading text-lg font-bold text-[#302365]">
+                              {a.title}
+                            </h3>
+                            {overdue ? (
+                              <Badge variant="danger">Closed</Badge>
                             ) : (
-                              <>
-                                <Send className="h-3.5 w-3.5" />
-                                Submit
-                              </>
+                              <Badge variant="success">Open</Badge>
                             )}
-                          </Button>
+                            {submitted && (
+                              <Badge variant="info">
+                                <CheckCircle2 className="mr-1 h-3 w-3" />
+                                Submitted
+                              </Badge>
+                            )}
+                          </div>
+
+                          {a.description && (
+                            <p className="mt-1.5 text-sm font-medium text-[#302365]/80 leading-relaxed">
+                              {a.description}
+                            </p>
+                          )}
+
+                          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-semibold text-[#302365]/70">
+                            <span
+                              className={cn(
+                                'inline-flex items-center gap-1',
+                                overdue && 'text-[#C22B58]'
+                              )}
+                            >
+                              <Clock className="h-3.5 w-3.5" />
+                              Due: {formatDateTime(a.deadline)}
+                            </span>
+                            {a.teacher && (
+                              <span>Faculty: {a.teacher.name.trim()}</span>
+                            )}
+                            {a.attachmentUrl && (
+                              <a
+                                href={a.attachmentUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 font-bold text-[#2587B8] hover:underline"
+                              >
+                                <Paperclip className="h-3.5 w-3.5" />
+                                Download Attachment
+                              </a>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </CardBody>
-                  </Card>
+
+                      <div className="shrink-0 sm:ml-auto">
+                        <Button
+                          size="md"
+                          onClick={() => {
+                            setSubmittingFor(a);
+                            reset({ submissionLink: '' });
+                          }}
+                          disabled={overdue && !submitted}
+                          variant={submitted ? 'secondary' : 'primary'}
+                          className="w-full sm:w-auto"
+                        >
+                          {submitted ? (
+                            <>
+                              <CheckCircle2 className="h-4 w-4" />
+                              Resubmit Link
+                            </>
+                          ) : overdue ? (
+                            <>
+                              <XCircle className="h-4 w-4" />
+                              Closed
+                            </>
+                          ) : (
+                            <>
+                              <Send className="h-4 w-4" />
+                              Submit Work
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 );
               })}
             </div>
           )}
-        </>
+        </div>
       )}
 
       {/* ─── My Submissions tab ──────────────────────────── */}
@@ -333,11 +336,11 @@ export const StudentAssignmentsPage = () => {
                 <Table>
                   <THead>
                     <TR>
-                      <TH>Submission</TH>
-                      <TH>Submitted At</TH>
-                      <TH>Grade</TH>
-                      <TH>Feedback</TH>
-                      <TH className="text-right">Actions</TH>
+                      <TH>Submission ID</TH>
+                      <TH>Timestamp</TH>
+                      <TH>Evaluation / Grade</TH>
+                      <TH>Teacher Remarks</TH>
+                      <TH className="text-right">Public Link</TH>
                     </TR>
                   </THead>
                   <TBody>
@@ -345,37 +348,33 @@ export const StudentAssignmentsPage = () => {
                       <TR key={s.submissionId}>
                         <TD>
                           <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-slate-400" />
-                            <span className="text-sm text-slate-700">
+                            <FileText className="h-4 w-4 text-[#302365]/50" />
+                            <span className="font-heading font-semibold text-[#302365]">
                               #{s.submissionId.slice(0, 8)}
                             </span>
                             {s.late && <Badge variant="warning">Late</Badge>}
                           </div>
                         </TD>
-                        <TD className="text-slate-600">
+                        <TD className="font-medium text-[#302365]">
                           {formatDateTime(s.submittedAt)}
                         </TD>
                         <TD>
                           {s.grade && s.grade !== 'Not Graded' ? (
                             <Badge variant="success">
-                              <Trophy className="mr-1 h-3 w-3" />
+                              <Trophy className="mr-1 h-3.5 w-3.5" />
                               {s.grade}
                             </Badge>
                           ) : (
-                            <span className="text-xs italic text-slate-400">
-                              Not graded
+                            <span className="text-xs italic text-[#302365]/50">
+                              Pending Review
                             </span>
                           )}
                         </TD>
-                        <TD className="max-w-xs">
+                        <TD className="max-w-xs font-medium text-sm text-[#302365]">
                           {s.feedback ? (
-                            <p className="line-clamp-2 text-sm text-slate-600">
-                              {s.feedback}
-                            </p>
+                            <p className="line-clamp-2">{s.feedback}</p>
                           ) : (
-                            <span className="text-xs italic text-slate-400">
-                              —
-                            </span>
+                            <span className="text-xs italic text-[#302365]/40">—</span>
                           )}
                         </TD>
                         <TD className="text-right">
@@ -383,10 +382,10 @@ export const StudentAssignmentsPage = () => {
                             href={s.submissionLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:underline"
+                            className="inline-flex items-center gap-1.5 font-heading font-bold text-sm text-[#2587B8] hover:underline"
                           >
                             <ExternalLink className="h-3.5 w-3.5" />
-                            Open
+                            Open Work
                           </a>
                         </TD>
                       </TR>
@@ -398,51 +397,52 @@ export const StudentAssignmentsPage = () => {
               {/* Mobile cards */}
               <div className="space-y-3 md:hidden">
                 {mySubmissions.map((s) => (
-                  <Card key={s.submissionId}>
-                    <CardBody className="p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <FileText className="h-4 w-4 shrink-0 text-slate-400" />
-                            <span className="truncate text-sm font-medium text-slate-800">
-                              Submission #{s.submissionId.slice(0, 8)}
-                            </span>
-                            {s.late && <Badge variant="warning">Late</Badge>}
-                          </div>
-                          <p className="mt-1 text-xs text-slate-500">
-                            {formatDateTime(s.submittedAt)}
-                          </p>
-                        </div>
-                        {s.grade && s.grade !== 'Not Graded' ? (
-                          <Badge variant="success" className="shrink-0">
-                            <Trophy className="mr-1 h-3 w-3" />
-                            {s.grade}
-                          </Badge>
-                        ) : (
-                          <span className="shrink-0 text-xs italic text-slate-400">
-                            Not graded
+                  <div
+                    key={s.submissionId}
+                    className="rounded-2xl border-2 border-[#302365]/10 bg-white p-4 shadow-[2px_2px_0px_rgba(48,35,101,0.05)]"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <FileText className="h-4 w-4 shrink-0 text-[#302365]/50" />
+                          <span className="font-heading font-bold text-sm text-[#302365]">
+                            #{s.submissionId.slice(0, 8)}
                           </span>
-                        )}
-                      </div>
-
-                      {s.feedback && (
-                        <div className="mt-3 rounded-lg bg-amber-50 p-2.5 text-xs text-amber-800">
-                          <strong className="font-medium">Feedback:</strong>{' '}
-                          <span className="break-words">{s.feedback}</span>
+                          {s.late && <Badge variant="warning">Late</Badge>}
                         </div>
+                        <p className="mt-1 text-xs font-medium text-[#302365]/60">
+                          {formatDateTime(s.submittedAt)}
+                        </p>
+                      </div>
+                      {s.grade && s.grade !== 'Not Graded' ? (
+                        <Badge variant="success" className="shrink-0">
+                          <Trophy className="mr-1 h-3 w-3" />
+                          {s.grade}
+                        </Badge>
+                      ) : (
+                        <span className="shrink-0 text-xs italic text-[#302365]/50">
+                          Pending
+                        </span>
                       )}
+                    </div>
 
-                      <a
-                        href={s.submissionLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-3 inline-flex w-full items-center justify-center gap-1 rounded-lg bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100"
-                      >
-                        <ExternalLink className="h-3.5 w-3.5" />
-                        Open submission
-                      </a>
-                    </CardBody>
-                  </Card>
+                    {s.feedback && (
+                      <div className="mt-3 rounded-xl border border-[#F7D37E] bg-[#FFF0C9] p-3 text-xs text-[#995E05]">
+                        <strong className="font-heading font-bold">Feedback:</strong>{' '}
+                        <span>{s.feedback}</span>
+                      </div>
+                    )}
+
+                    <a
+                      href={s.submissionLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-xl border-2 border-[#2587B8] bg-[#DFF2FC] px-4 py-2 font-heading text-sm font-bold text-[#2587B8] hover:bg-[#c9eaf9]"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      View Submission
+                    </a>
+                  </div>
                 ))}
               </div>
             </>
@@ -457,33 +457,34 @@ export const StudentAssignmentsPage = () => {
           setSubmittingFor(null);
           reset();
         }}
-        title={`Submit — ${submittingFor?.title ?? ''}`}
+        title={`Submit Work — ${submittingFor?.title ?? ''}`}
       >
         {submittingFor && (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="rounded-lg bg-slate-50 p-3 text-sm">
-              <p className="text-slate-500">Deadline</p>
-              <p className="font-medium text-slate-800">
+            <div className="rounded-2xl border-2 border-[#302365]/10 bg-[#FFF6D8] p-4 text-sm">
+              <p className="font-heading text-xs font-bold uppercase tracking-wider text-[#302365]/70">
+                Deadline
+              </p>
+              <p className="font-heading text-base font-bold text-[#302365]">
                 {formatDateTime(submittingFor.deadline)}
               </p>
               {new Date(submittingFor.deadline).getTime() < Date.now() && (
-                <p className="mt-1 flex items-center gap-1 text-xs text-amber-600">
-                  <AlertTriangle className="h-3 w-3" />
-                  Past deadline — your submission will be marked late.
+                <p className="mt-1.5 flex items-center gap-1.5 text-xs font-bold text-[#C22B58]">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  Past deadline — submission will be recorded as late.
                 </p>
               )}
             </div>
 
             <Input
-              label="Submission Link"
-              placeholder="https://docs.google.com/document/d/..."
+              label="Shareable Link (Google Drive / GitHub / Docs)"
+              placeholder="https://drive.google.com/file/d/..."
               {...register('submissionLink')}
               error={errors.submissionLink?.message}
             />
 
-            <p className="text-xs text-slate-500">
-              Paste a public link to your work. Make sure it's viewable by your
-              teacher.
+            <p className="text-xs font-medium text-[#302365]/70">
+              Ensure permissions are set so your course instructor can review the link.
             </p>
 
             <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:justify-end">
@@ -499,7 +500,7 @@ export const StudentAssignmentsPage = () => {
               </Button>
               <Button type="submit" loading={submitMutation.isPending}>
                 <Send className="h-4 w-4" />
-                Submit
+                Submit Assignment
               </Button>
             </div>
           </form>

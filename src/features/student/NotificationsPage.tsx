@@ -15,7 +15,6 @@ import {
   deleteNotification,
 } from '@/api/notifications';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Loader } from '@/components/feedback/Loader';
@@ -36,14 +35,14 @@ const formatDateTime = (iso: string) =>
 const typeStyle = (type: string) => {
   switch (type) {
     case 'ASSIGNMENT':
-      return { bg: 'bg-blue-50 text-blue-600', label: 'Assignment' };
+      return { variant: 'info' as const, label: 'Assignment', iconBg: 'bg-[#DFF2FC] text-[#17648B] border-[#99D4F2]' };
     case 'GRADE_UPDATE':
-      return { bg: 'bg-emerald-50 text-emerald-600', label: 'Grade' };
+      return { variant: 'success' as const, label: 'Grade Update', iconBg: 'bg-[#E8F5DF] text-[#226E30] border-[#A3D995]' };
     case 'DOUBT_REPLY':
-      return { bg: 'bg-violet-50 text-violet-600', label: 'Doubt' };
+      return { variant: 'lavender' as const, label: 'Doubt Reply', iconBg: 'bg-[#DCD2F5] text-[#463378] border-[#B7A4E8]' };
     case 'NOTICE':
     default:
-      return { bg: 'bg-indigo-50 text-indigo-600', label: 'Notice' };
+      return { variant: 'warning' as const, label: 'Notice', iconBg: 'bg-[#FFF0C9] text-[#995E05] border-[#F7D37E]' };
   }
 };
 
@@ -97,10 +96,10 @@ export const StudentNotificationsPage = () => {
   });
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
-        title="Notifications"
-        subtitle="Notices, assignment updates and grade announcements."
+        title="Notice Board & Alerts 🔔"
+        subtitle="Stay updated with college circulars, class announcements, and grading."
         action={
           unreadCount > 0 ? (
             <Button
@@ -109,42 +108,42 @@ export const StudentNotificationsPage = () => {
               loading={markAllMutation.isPending}
             >
               <CheckCheck className="h-4 w-4" />
-              Mark all read
+              Mark all as read
             </Button>
           ) : null
         }
       />
 
       {/* Filter tabs */}
-      <div className="mb-5 flex items-center gap-2 overflow-x-auto border-b border-slate-200">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
         <button
           onClick={() => setFilter('all')}
           className={cn(
-            'flex shrink-0 items-center gap-2 px-4 py-2 text-sm font-medium transition',
+            'flex shrink-0 items-center gap-2 rounded-2xl border-2 px-5 py-2.5 font-heading text-sm font-bold transition-all duration-150 cursor-pointer shadow-[2px_2px_0px_rgba(48,35,101,0.06)]',
             filter === 'all'
-              ? 'border-b-2 border-indigo-600 text-indigo-600'
-              : 'text-slate-500 hover:text-slate-800'
+              ? 'border-[#2587B8] bg-[#DFF2FC] text-[#2587B8] shadow-[2px_2px_0px_#2587B8]'
+              : 'border-[#302365]/15 bg-white text-[#302365]/70 hover:bg-[#FFF6D8] hover:text-[#302365]'
           )}
         >
           <Filter className="h-4 w-4" />
-          All
+          All Notices
           {data?.length ? (
-            <span className="text-xs text-slate-400">({data.length})</span>
+            <span className="text-xs font-semibold">({data.length})</span>
           ) : null}
         </button>
         <button
           onClick={() => setFilter('unread')}
           className={cn(
-            'flex items-center gap-2 px-4 py-2 text-sm font-medium transition',
+            'flex shrink-0 items-center gap-2 rounded-2xl border-2 px-5 py-2.5 font-heading text-sm font-bold transition-all duration-150 cursor-pointer shadow-[2px_2px_0px_rgba(48,35,101,0.06)]',
             filter === 'unread'
-              ? 'border-b-2 border-indigo-600 text-indigo-600'
-              : 'text-slate-500 hover:text-slate-800'
+              ? 'border-[#E87999] bg-[#FCE4EB] text-[#C22B58] shadow-[2px_2px_0px_#E87999]'
+              : 'border-[#302365]/15 bg-white text-[#302365]/70 hover:bg-[#FFF6D8] hover:text-[#302365]'
           )}
         >
           <Bell className="h-4 w-4" />
-          Unread
+          Unread Only
           {unreadCount > 0 && (
-            <span className="grid h-5 min-w-5 place-items-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
+            <span className="grid h-5 min-w-5 place-items-center rounded-full bg-[#E87999] text-white px-1.5 font-heading text-[10px] font-bold">
               {unreadCount}
             </span>
           )}
@@ -159,12 +158,12 @@ export const StudentNotificationsPage = () => {
           title={filter === 'unread' ? 'No unread notifications' : 'No notifications yet'}
           subtitle={
             filter === 'unread'
-              ? "You're all caught up!"
-              : 'Notices from your teachers and admin will appear here.'
+              ? "You're all caught up with campus news! ✨"
+              : 'Notices from your teachers and administration will appear here.'
           }
         />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3.5">
           {list.map((n) => (
             <NotificationRow
               key={n.notificationId}
@@ -192,46 +191,51 @@ function NotificationRow({
   const style = typeStyle(n.type);
 
   return (
-    <Card
+    <div
       className={cn(
-        'transition',
-        !n.read && 'border-indigo-200 bg-indigo-50/30'
+        'rounded-3xl border-2 p-5 transition-all duration-150 shadow-[3px_3px_0px_rgba(48,35,101,0.06)]',
+        !n.read
+          ? 'border-[#2587B8] bg-[#DFF2FC]/40'
+          : 'border-[#302365]/12 bg-white'
       )}
     >
-<CardBody className="flex items-start gap-3 p-4 sm:gap-4 sm:p-5">        <div
+      <div className="flex items-start gap-4">
+        <div
           className={cn(
-            'grid h-10 w-10 shrink-0 place-items-center rounded-lg',
-            style.bg
+            'grid h-12 w-12 shrink-0 place-items-center rounded-2xl border-2 shadow-xs',
+            style.iconBg
           )}
         >
-          <Bell className="h-5 w-5" />
+          <Bell className="h-6 w-6" />
         </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h3
               className={cn(
-                'truncate',
+                'font-heading text-lg',
                 n.read
-                  ? 'font-medium text-slate-700'
-                  : 'font-semibold text-slate-900'
+                  ? 'font-bold text-[#302365]'
+                  : 'font-extrabold text-[#302365]'
               )}
             >
               {n.title}
             </h3>
-            <Badge variant="info">{style.label}</Badge>
-            {!n.read && <span className="h-2 w-2 rounded-full bg-indigo-500" />}
+            <Badge variant={style.variant}>{style.label}</Badge>
+            {!n.read && (
+              <span className="h-2.5 w-2.5 rounded-full bg-[#E87999] ring-2 ring-white" />
+            )}
           </div>
 
-          <p className="mt-1 whitespace-pre-wrap-break-words text-sm text-slate-600">
-  {n.message}
-</p>
+          <p className="mt-1.5 font-medium text-sm text-[#302365] whitespace-pre-wrap break-words leading-relaxed">
+            {n.message}
+          </p>
 
-          <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
+          <div className="mt-3 flex flex-wrap items-center gap-3 text-xs font-semibold text-[#302365]/60">
             <span>{formatDateTime(n.createdAt)}</span>
-            {n.targetGroup && <span>· {n.targetGroup}</span>}
-            {n.batchYear && <span>· Batch {n.batchYear}</span>}
-            {n.semester != null && <span>· Sem {n.semester}</span>}
+            {n.targetGroup && <span>· Group: {n.targetGroup}</span>}
+            {n.batchYear && <span>· Batch: {n.batchYear}</span>}
+            {n.semester != null && <span>· Semester {n.semester}</span>}
           </div>
 
           {n.attachmentUrl && (
@@ -239,19 +243,19 @@ function NotificationRow({
               href={n.attachmentUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:underline"
+              className="mt-3 inline-flex items-center gap-1.5 font-heading text-xs font-bold text-[#2587B8] hover:underline"
             >
-              <Paperclip className="h-3 w-3" />
-              View attachment
+              <Paperclip className="h-3.5 w-3.5" />
+              Download Notice Attachment
             </a>
           )}
         </div>
 
-        <div className="flex shrink-0 gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           {!n.read && (
             <button
               onClick={onMarkRead}
-              className="rounded-lg p-2 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600"
+              className="rounded-xl border border-[#302365]/15 bg-white p-2 text-[#302365] hover:bg-[#E8F5DF] hover:text-[#226E30] transition cursor-pointer shadow-xs"
               title="Mark as read"
             >
               <CheckCheck className="h-4 w-4" />
@@ -259,13 +263,13 @@ function NotificationRow({
           )}
           <button
             onClick={onDelete}
-            className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600"
-            title="Delete"
+            className="rounded-xl border border-[#302365]/15 bg-white p-2 text-[#302365] hover:bg-[#FCE4EB] hover:text-[#C22B58] transition cursor-pointer shadow-xs"
+            title="Delete notification"
           >
             <Trash2 className="h-4 w-4" />
           </button>
         </div>
-      </CardBody>
-    </Card>
+      </div>
+    </div>
   );
 }

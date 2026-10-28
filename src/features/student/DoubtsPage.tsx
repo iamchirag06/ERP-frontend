@@ -24,7 +24,6 @@ import {
 } from '@/api/doubts';
 import { getMySubjects } from '@/api/student';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
@@ -34,6 +33,7 @@ import { EmptyState } from '@/components/feedback/EmptyState';
 import { useAuthStore } from '@/store/authStore';
 import { cn } from '@/lib/utils';
 import type { DoubtResponse, SolutionEntityResponse } from '@/types/academic';
+import { SparkleIcon, SpeechBubbleTag } from '@/components/ui/Illustrations';
 
 const askSchema = z.object({
   subjectId: z.string().uuid('Select a subject'),
@@ -93,7 +93,7 @@ export const StudentDoubtsPage = () => {
   const askMutation = useMutation({
     mutationFn: askDoubt,
     onSuccess: () => {
-      toast.success('Doubt posted');
+      toast.success('Doubt posted successfully! 💡');
       qc.invalidateQueries({ queryKey: ['doubts-mine'] });
       qc.invalidateQueries({ queryKey: ['doubts-all'] });
       reset();
@@ -125,10 +125,10 @@ export const StudentDoubtsPage = () => {
   const isLoading = tab === 'mine' ? loadingMine : loadingAll;
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
-        title="Doubts"
-        subtitle="Ask questions and help your peers by answering theirs."
+        title="Doubts & Discussions 💬"
+        subtitle="Ask academic questions and collaborate with classmates and faculty."
         action={
           <Button onClick={() => setAskOpen(true)}>
             <Plus className="h-4 w-4" />
@@ -137,50 +137,50 @@ export const StudentDoubtsPage = () => {
         }
       />
 
-      {/* Tabs */}
-      <div className="mb-5 flex items-center gap-2 overflow-x-auto border-b border-slate-200">
+      {/* Tabs as playful pills */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
         <button
           onClick={() => setTab('mine')}
           className={cn(
-             'flex shrink-0 items-center gap-2 px-4 py-2 text-sm font-medium transition',
+            'flex shrink-0 items-center gap-2 rounded-2xl border-2 px-5 py-2.5 font-heading text-sm font-bold transition-all duration-150 cursor-pointer shadow-[2px_2px_0px_rgba(48,35,101,0.06)]',
             tab === 'mine'
-              ? 'border-b-2 border-indigo-600 text-indigo-600'
-              : 'text-slate-500 hover:text-slate-800'
+              ? 'border-[#2587B8] bg-[#DFF2FC] text-[#2587B8] shadow-[2px_2px_0px_#2587B8]'
+              : 'border-[#302365]/15 bg-white text-[#302365]/70 hover:bg-[#FFF6D8] hover:text-[#302365]'
           )}
         >
           <HelpCircle className="h-4 w-4" />
-          My Doubts
+          My Questions
         </button>
         <button
           onClick={() => setTab('all')}
           className={cn(
-            'flex items-center gap-2 px-4 py-2 text-sm font-medium transition',
+            'flex shrink-0 items-center gap-2 rounded-2xl border-2 px-5 py-2.5 font-heading text-sm font-bold transition-all duration-150 cursor-pointer shadow-[2px_2px_0px_rgba(48,35,101,0.06)]',
             tab === 'all'
-              ? 'border-b-2 border-indigo-600 text-indigo-600'
-              : 'text-slate-500 hover:text-slate-800'
+              ? 'border-[#62A66C] bg-[#E8F5DF] text-[#226E30] shadow-[2px_2px_0px_#62A66C]'
+              : 'border-[#302365]/15 bg-white text-[#302365]/70 hover:bg-[#FFF6D8] hover:text-[#302365]'
           )}
         >
           <MessageSquare className="h-4 w-4" />
-          All Doubts
+          All Campus Doubts
         </button>
       </div>
 
-      {/* Search */}
-      <div className="mb-5 flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2">
-        <Search className="h-4 w-4 text-slate-400" />
+      {/* Search box with friendly borders */}
+      <div className="flex items-center gap-2.5 rounded-2xl border-2 border-[#302365]/15 bg-white px-4 py-2.5 shadow-[2px_2px_0px_rgba(48,35,101,0.05)]">
+        <Search className="h-4 w-4 text-[#302365]/50" />
         <input
           type="text"
-          placeholder="Search by title, subject or asker…"
+          placeholder="Search by question title, subject, or student name…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
+          className="w-full bg-transparent font-medium text-sm text-[#302365] placeholder:text-[#302365]/40 outline-none"
         />
         {search && (
           <button
             onClick={() => setSearch('')}
-            className="text-xs text-slate-400 hover:text-slate-600"
+            className="rounded-lg border border-[#302365]/20 bg-[#FFF6D8] px-2 py-0.5 font-heading text-xs font-bold text-[#302365] hover:bg-[#FCE4EB]"
           >
-            clear
+            Clear
           </button>
         )}
       </div>
@@ -190,15 +190,15 @@ export const StudentDoubtsPage = () => {
         <Loader />
       ) : !filtered.length ? (
         <EmptyState
-          title={tab === 'mine' ? "You haven't asked any doubts" : 'No doubts yet'}
+          title={tab === 'mine' ? "You haven't asked any doubts yet" : 'No doubts found'}
           subtitle={
             tab === 'mine'
-              ? 'Ask a doubt to get help from your teachers and peers.'
-              : 'Once someone asks a doubt it will appear here.'
+              ? 'Click "Ask a Doubt" to get help from your teachers and peers.'
+              : 'Doubts posted by peers will appear here.'
           }
         />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3.5">
           {filtered.map((d) => (
             <DoubtCard
               key={d.id}
@@ -217,19 +217,19 @@ export const StudentDoubtsPage = () => {
           setAskOpen(false);
           reset();
         }}
-        title="Ask a Doubt"
+        title="Ask a New Academic Doubt 💡"
       >
         <form
           onSubmit={handleSubmit((d) => askMutation.mutate(d))}
           className="space-y-4"
         >
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
-              Subject
+            <label className="mb-1.5 block font-heading text-xs font-bold uppercase tracking-wider text-[#302365]">
+              Select Subject
             </label>
             <select
               {...register('subjectId')}
-              className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+              className="h-11 w-full rounded-xl border-2 border-[#302365]/20 bg-white px-3.5 font-heading text-sm font-medium text-[#302365] outline-none transition focus:border-[#302365] focus:ring-2 focus:ring-[#DCD2F5]"
             >
               <option value="">— Select subject —</option>
               {subjects?.map((s) => (
@@ -239,60 +239,60 @@ export const StudentDoubtsPage = () => {
               ))}
             </select>
             {errors.subjectId && (
-              <p className="mt-1 text-xs text-red-600">{errors.subjectId.message}</p>
+              <p className="mt-1 text-xs font-medium text-[#C22B58]">{errors.subjectId.message}</p>
             )}
           </div>
 
           <Input
-            label="Title"
-            placeholder="Short summary of your question"
+            label="Question Title"
+            placeholder="Briefly state your doubt (e.g. Recursion base condition in QuickSort)"
             {...register('title')}
             error={errors.title?.message}
           />
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
-              Details
+            <label className="mb-1.5 block font-heading text-xs font-bold uppercase tracking-wider text-[#302365]">
+              Detailed Explanation
             </label>
             <textarea
               rows={5}
-              placeholder="Explain your doubt in detail. Include what you've tried so far…"
+              placeholder="Explain where you are stuck, what you expected, and what you've tried…"
               {...register('description')}
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+              className="w-full rounded-xl border-2 border-[#302365]/20 bg-white px-3.5 py-2.5 font-medium text-sm text-[#302365] outline-none transition placeholder:text-[#302365]/40 focus:border-[#302365] focus:ring-2 focus:ring-[#DCD2F5]"
             />
             {errors.description && (
-              <p className="mt-1 text-xs text-red-600">
+              <p className="mt-1 text-xs font-medium text-[#C22B58]">
                 {errors.description.message}
               </p>
             )}
           </div>
 
           <Input
-            label="Bounty Points (optional)"
+            label="Bounty Points (optional reward)"
             type="number"
             placeholder="5"
             {...register('bountyPoints', { valueAsNumber: true })}
             error={errors.bountyPoints?.message}
           />
-          <p className="-mt-2 text-xs text-slate-500">
-            Offer points to encourage others to answer. Leave blank for none.
+          <p className="-mt-2 text-xs font-medium text-[#302365]/60">
+            Award points to encourage classmates and peers to answer quickly.
           </p>
 
           <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:justify-end">
-  <Button
-    type="button"
-    variant="secondary"
-    onClick={() => {
-      setAskOpen(false);
-      reset();
-    }}
-  >
-    Cancel
-  </Button>
-  <Button type="submit" loading={askMutation.isPending}>
-    Post Doubt
-  </Button>
-</div>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                setAskOpen(false);
+                reset();
+              }}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" loading={askMutation.isPending}>
+              Post Doubt →
+            </Button>
+          </div>
         </form>
       </Modal>
 
@@ -320,48 +320,50 @@ function DoubtCard({
 }) {
   const solved = d.status === 'SOLVED';
   return (
-    <Card
-      className="cursor-pointer transition hover:border-indigo-200 hover:shadow-md"
+    <div
+      className="cursor-pointer rounded-3xl border-2 border-[#302365]/12 bg-white p-5 shadow-[3px_3px_0px_rgba(48,35,101,0.06)] transition hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_rgba(48,35,101,0.1)]"
       onClick={onOpen}
     >
-      <CardBody>
-        <div className="flex items-start gap-4">
-          <div
-            className={cn(
-              'grid h-11 w-11 shrink-0 place-items-center rounded-lg',
-              solved
-                ? 'bg-emerald-50 text-emerald-600'
-                : 'bg-amber-50 text-amber-600'
-            )}
-          >
-            {solved ? (
-              <CheckCircle2 className="h-5 w-5" />
-            ) : (
-              <HelpCircle className="h-5 w-5" />
+      <div className="flex items-start gap-3.5">
+        <div
+          className={cn(
+            'grid h-12 w-12 shrink-0 place-items-center rounded-2xl border-2 shadow-xs',
+            solved
+              ? 'border-[#62A66C] bg-[#E8F5DF] text-[#226E30]'
+              : 'border-[#E89D42] bg-[#FFF0C9] text-[#995E05]'
+          )}
+        >
+          {solved ? (
+            <CheckCircle2 className="h-6 w-6" />
+          ) : (
+            <HelpCircle className="h-6 w-6" />
+          )}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="font-heading text-lg font-bold text-[#302365] hover:text-[#2587B8]">
+              {d.title}
+            </h3>
+            <Badge variant={solved ? 'success' : 'warning'}>
+              {solved ? '✦ Solved' : 'Open'}
+            </Badge>
+            {isMine && <Badge variant="lavender">My Post</Badge>}
+            {d.bountyPoints > 0 && (
+              <Badge variant="warning">
+                <Trophy className="mr-1 h-3 w-3" />
+                {d.bountyPoints} pts
+              </Badge>
             )}
           </div>
 
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className="font-semibold text-slate-800">{d.title}</h3>
-              <Badge variant={solved ? 'success' : 'warning'}>{d.status}</Badge>
-              {isMine && <Badge variant="info">Mine</Badge>}
-              {d.bountyPoints > 0 && (
-                <Badge variant="default">
-                  <Trophy className="mr-1 h-3 w-3" />
-                  {d.bountyPoints} pts
-                </Badge>
-              )}
-            </div>
-
-            <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500">
-              <Badge variant="info">{d.subjectName.trim()}</Badge>
-              <span>By {d.askerName.trim()}</span>
-            </div>
+          <div className="mt-2.5 flex flex-wrap items-center gap-3 text-xs font-semibold text-[#302365]/70">
+            <Badge variant="info">{d.subjectName.trim()}</Badge>
+            <span>Asked by {d.askerName.trim()}</span>
           </div>
         </div>
-      </CardBody>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -395,7 +397,7 @@ function DoubtDetailModal({
     mutationFn: (data: AnswerForm) =>
       answerDoubt({ doubtId: doubt.id, content: data.content }),
     onSuccess: () => {
-      toast.success('Answer posted');
+      toast.success('Answer posted successfully! 🌟');
       qc.invalidateQueries({ queryKey: ['solutions', doubt.id] });
       reset();
     },
@@ -407,7 +409,7 @@ function DoubtDetailModal({
   const acceptMutation = useMutation({
     mutationFn: (solutionId: string) => acceptSolution(solutionId),
     onSuccess: () => {
-      toast.success('Solution accepted');
+      toast.success('Solution accepted as best answer! 🏆');
       qc.invalidateQueries({ queryKey: ['solutions', doubt.id] });
       qc.invalidateQueries({ queryKey: ['doubts-mine'] });
       qc.invalidateQueries({ queryKey: ['doubts-all'] });
@@ -417,22 +419,21 @@ function DoubtDetailModal({
     },
   });
 
-  // Show description from either the doubt prop or the first solution's nested doubt
   const description =
     doubt.description ?? solutions?.[0]?.doubt?.description ?? null;
 
   return (
     <Modal open onClose={onClose} title={doubt.title} size="lg">
-      <div className="space-y-4">
-        {/* Doubt summary */}
-        <div className="rounded-lg bg-slate-50 p-3">
+      <div className="space-y-5">
+        {/* Doubt summary card */}
+        <div className="rounded-2xl border-2 border-[#302365]/10 bg-[#FFFDF7] p-4">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="info">{doubt.subjectName.trim()}</Badge>
             <Badge variant={doubt.status === 'SOLVED' ? 'success' : 'warning'}>
               {doubt.status}
             </Badge>
             {doubt.bountyPoints > 0 && (
-              <Badge variant="default">
+              <Badge variant="warning">
                 <Trophy className="mr-1 h-3 w-3" />
                 {doubt.bountyPoints} pts
               </Badge>
@@ -440,31 +441,34 @@ function DoubtDetailModal({
           </div>
 
           {description && (
-            <p className="mt-3 whitespace-pre-wrap text-sm text-slate-700">
+            <p className="mt-3 font-medium text-sm text-[#302365] leading-relaxed whitespace-pre-wrap">
               {description}
             </p>
           )}
 
-          <p className="mt-3 text-xs text-slate-500">
+          <p className="mt-3 text-xs font-semibold text-[#302365]/60">
             Asked by {doubt.askerName.trim()}
           </p>
         </div>
 
-        {/* Solutions */}
+        {/* Solutions section */}
         <div>
-          <h3 className="mb-2 text-sm font-semibold text-slate-700">
-            {solutions?.length ?? 0}{' '}
-            {solutions?.length === 1 ? 'Answer' : 'Answers'}
-          </h3>
+          <div className="mb-2.5 flex items-center gap-2">
+            <h3 className="font-heading text-sm font-bold text-[#302365]">
+              {solutions?.length ?? 0}{' '}
+              {solutions?.length === 1 ? 'Answer' : 'Answers'}
+            </h3>
+            <SparkleIcon className="h-3.5 w-3.5 text-amber-500" />
+          </div>
 
           {isLoading ? (
             <Loader />
           ) : !solutions?.length ? (
-            <p className="rounded-lg bg-slate-50 p-3 text-sm italic text-slate-500">
-              No answers yet. Be the first to help!
-            </p>
+            <div className="rounded-2xl border-2 border-dashed border-[#302365]/15 bg-[#FFF6D8]/50 p-4 text-center text-sm font-medium italic text-[#302365]/70">
+              No solutions submitted yet. Be the first to help! ✏️
+            </div>
           ) : (
-            <div className="max-h-64 space-y-2 overflow-y-auto">
+            <div className="max-h-64 space-y-2.5 overflow-y-auto pr-1">
               {solutions.map((s) => (
                 <SolutionRow
                   key={s.id}
@@ -481,31 +485,31 @@ function DoubtDetailModal({
         {/* Answer form */}
         <form
           onSubmit={handleSubmit((d) => answerMutation.mutate(d))}
-          className="border-t border-slate-200 pt-4"
+          className="border-t-2 border-[#302365]/10 pt-4"
         >
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Post your answer
+          <label className="mb-1.5 block font-heading text-xs font-bold uppercase tracking-wider text-[#302365]">
+            Post your solution
           </label>
           <textarea
             rows={3}
-            placeholder="Share your solution or explanation…"
+            placeholder="Share step-by-step guidance or code snippet…"
             {...register('content')}
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+            className="w-full rounded-xl border-2 border-[#302365]/20 bg-white px-3.5 py-2.5 font-medium text-sm text-[#302365] outline-none transition placeholder:text-[#302365]/40 focus:border-[#302365] focus:ring-2 focus:ring-[#DCD2F5]"
           />
           {errors.content && (
-            <p className="mt-1 text-xs text-red-600">{errors.content.message}</p>
+            <p className="mt-1 text-xs font-medium text-[#C22B58]">{errors.content.message}</p>
           )}
 
           <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:justify-end">
-  <Button
-    type="submit"
-    loading={answerMutation.isPending}
-    className="w-full sm:w-auto"
-  >
-    <Send className="h-4 w-4" />
-    Post Answer
-  </Button>
-</div>
+            <Button
+              type="submit"
+              loading={answerMutation.isPending}
+              className="w-full sm:w-auto"
+            >
+              <Send className="h-4 w-4" />
+              Submit Answer
+            </Button>
+          </div>
         </form>
       </div>
     </Modal>
@@ -535,43 +539,45 @@ function SolutionRow({
   return (
     <div
       className={cn(
-        'rounded-lg border p-3',
-        s.accepted ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-white'
+        'rounded-2xl border-2 p-3.5 transition shadow-xs',
+        s.accepted
+          ? 'border-[#62A66C] bg-[#E8F5DF]/70'
+          : 'border-[#302365]/12 bg-white'
       )}
     >
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-3">
+      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:gap-3">
         {s.solver?.profileImageUrl ? (
           <img
             src={s.solver.profileImageUrl}
             alt={solverName}
-            className="h-9 w-9 shrink-0 rounded-full object-cover"
+            className="h-10 w-10 shrink-0 rounded-xl border border-[#302365]/20 object-cover"
           />
         ) : (
-          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-[#B7A4E8] bg-[#DCD2F5] font-heading text-xs font-bold text-[#302365]">
             {initials}
           </div>
         )}
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-sm font-medium text-slate-800">{solverName}</p>
+            <p className="font-heading font-bold text-sm text-[#302365]">{solverName}</p>
             {s.solver?.rollNo && (
-              <span className="text-xs text-slate-400">{s.solver.rollNo}</span>
+              <span className="text-xs font-semibold text-[#302365]/50">#{s.solver.rollNo}</span>
             )}
             {s.accepted && (
               <Badge variant="success">
                 <CheckCircle2 className="mr-1 h-3 w-3" />
-                Accepted
+                Accepted Solution
               </Badge>
             )}
           </div>
 
-          <p className="mt-1 whitespace-pre-wrap-break-words text-sm text-slate-600">
-  {s.content}
-</p>
+          <p className="mt-1 font-medium text-sm text-[#302365] whitespace-pre-wrap break-words leading-relaxed">
+            {s.content}
+          </p>
 
           {s.createdAt && (
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1.5 text-xs text-[#302365]/50">
               {new Date(s.createdAt).toLocaleString('en-IN', {
                 day: '2-digit',
                 month: 'short',
@@ -582,18 +588,18 @@ function SolutionRow({
           )}
         </div>
 
-       {canAccept && (
-  <Button
-    size="sm"
-    variant="secondary"
-    onClick={onAccept}
-    loading={accepting}
-    className="mt-2 w-full sm:mt-0 sm:w-auto"
-  >
-    <CheckCircle2 className="h-3.5 w-3.5" />
-    Accept
-  </Button>
-)}
+        {canAccept && (
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={onAccept}
+            loading={accepting}
+            className="mt-2 w-full sm:mt-0 sm:w-auto"
+          >
+            <CheckCircle2 className="h-3.5 w-3.5 text-[#226E30]" />
+            Accept as Best
+          </Button>
+        )}
       </div>
     </div>
   );

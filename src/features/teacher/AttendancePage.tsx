@@ -9,7 +9,6 @@ import {
   markAttendance,
 } from '@/api/teacher';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { Card, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -17,6 +16,7 @@ import { Loader } from '@/components/feedback/Loader';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { useAuthStore } from '@/store/authStore';
 import { cn, initials } from '@/lib/utils';
+import { SparkleIcon } from '@/components/ui/Illustrations';
 
 interface ApiError {
   error?: string;
@@ -99,7 +99,7 @@ export const TeacherAttendancePage = () => {
     },
     onSuccess: () => {
       toast.success(
-        `Attendance saved — ${presentCount} present, ${absentIds.size} absent`
+        `Attendance recorded! 🌟 ${presentCount} present, ${absentIds.size} absent`
       );
     },
     onError: (e: AxiosError<ApiError>) => {
@@ -109,7 +109,7 @@ export const TeacherAttendancePage = () => {
       let msg = raw || 'Failed to save attendance';
 
       if (lower.includes('duplicate') || lower.includes('already exists')) {
-        msg = `Attendance for ${formatDate(date)} has already been marked for this subject.`;
+        msg = `Attendance for ${formatDate(date)} has already been recorded for this subject.`;
       } else if (lower.includes('foreign key')) {
         msg = 'Cannot save attendance — some students in the roster no longer exist.';
       } else if (raw.length > 200) {
@@ -130,15 +130,16 @@ export const TeacherAttendancePage = () => {
   const alreadyMarked = saveMutation.isError;
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
-        title="Mark Attendance"
-        subtitle="Take roll call for your classes."
+        title="Mark Attendance 📋"
+        subtitle="Take daily roll call and record classroom presence."
       />
 
-      <div className="mb-4 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:mb-5 sm:grid-cols-2">
+      {/* Select class and date */}
+      <div className="grid gap-4 rounded-3xl border-2 border-[#302365]/12 bg-white p-5 shadow-[3px_3px_0px_rgba(48,35,101,0.06)] sm:grid-cols-2">
         <Select
-          label="Subject"
+          label="Subject & Class"
           value={effectiveSubjectId}
           onChange={(e) => setSubjectId(e.target.value)}
           disabled={loadingSubjects || !subjects?.length}
@@ -152,7 +153,7 @@ export const TeacherAttendancePage = () => {
         </Select>
 
         <Input
-          label="Date"
+          label="Attendance Date"
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
@@ -173,134 +174,132 @@ export const TeacherAttendancePage = () => {
           subtitle="This subject has no students yet."
         />
       ) : (
-        <Card>
-          <CardBody>
-            {alreadyMarked && (
-              <div className="mb-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                <div>
-                  <p className="font-medium">Attendance already recorded</p>
-                  <p className="mt-0.5 text-amber-700">
-                    Attendance for {formatDate(date)} has already been saved.
-                  </p>
-                </div>
+        <div className="rounded-3xl border-2 border-[#302365]/12 bg-white p-6 shadow-[4px_4px_0px_rgba(48,35,101,0.06)]">
+          {alreadyMarked && (
+            <div className="mb-4 flex items-start gap-2.5 rounded-2xl border-2 border-[#E89D42]/30 bg-[#FFF0C9] p-3.5 text-xs text-[#995E05]">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+              <div>
+                <p className="font-heading font-bold">Attendance already recorded</p>
+                <p className="mt-0.5 text-xs text-[#995E05]/90">
+                  Attendance for {formatDate(date)} has already been saved for this subject.
+                </p>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Toolbar */}
-            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-indigo-50 text-indigo-600">
-                  <Users className="h-5 w-5" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-slate-800">
-                    {totalCount} {totalCount === 1 ? 'student' : 'students'}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    <span className="font-medium text-emerald-600">
-                      {presentCount} present
-                    </span>{' '}
-                    ·{' '}
-                    <span className="font-medium text-red-600">
-                      {absentIds.size} absent
-                    </span>
-                  </p>
-                </div>
+          {/* Toolbar */}
+          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b-2 border-[#302365]/8 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border-2 border-[#2587B8] bg-[#DFF2FC] text-[#2587B8] shadow-xs">
+                <Users className="h-5 w-5" />
               </div>
-
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={markAllPresent}
-                  disabled={alreadyMarked}
-                  className="flex-1 sm:flex-initial"
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                  All Present
-                </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={markAllAbsent}
-                  disabled={alreadyMarked}
-                  className="flex-1 sm:flex-initial"
-                >
-                  <XCircle className="h-4 w-4" />
-                  All Absent
-                </Button>
+              <div className="min-w-0">
+                <p className="font-heading text-base font-bold text-[#302365]">
+                  {totalCount} {totalCount === 1 ? 'Student' : 'Students'} on Roster
+                </p>
+                <p className="text-xs font-semibold text-[#302365]/70">
+                  <span className="font-bold text-[#226E30]">
+                    {presentCount} present
+                  </span>{' '}
+                  ·{' '}
+                  <span className="font-bold text-[#C22B58]">
+                    {absentIds.size} absent
+                  </span>
+                </p>
               </div>
             </div>
 
-            {/* Student list */}
-            <ul className="divide-y divide-slate-100">
-              {roster.map((s) => {
-                const isAbsent = absentIds.has(s.studentId);
-                return (
-                  <li
-                    key={s.studentId}
-                    className="flex items-center gap-3 py-3"
-                  >
-                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
-                      {initials(s.name)}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium text-slate-800">
-                        {s.name}
-                      </p>
-                      <p className="truncate text-xs text-slate-500">
-                        {s.rollNo}
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => toggle(s.studentId)}
-                      disabled={alreadyMarked}
-                      className={cn(
-                        'shrink-0 rounded-lg px-3 py-2 text-xs font-medium transition sm:px-4 sm:text-sm',
-                        'disabled:opacity-50 disabled:cursor-not-allowed',
-                        isAbsent
-                          ? 'bg-red-50 text-red-700 hover:bg-red-100'
-                          : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                      )}
-                    >
-                      {isAbsent ? 'Absent' : 'Present'}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-
-            {/* Save bar */}
-            <div className="mt-5 flex flex-col gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-2 text-xs text-slate-500">
-                <Calendar className="h-3.5 w-3.5" />
-                Marking for {formatDate(date)}
-              </div>
+            <div className="flex gap-2">
               <Button
-                onClick={() => saveMutation.mutate()}
-                loading={saveMutation.isPending}
-                disabled={!roster.length || saveMutation.isSuccess || alreadyMarked}
-                className="w-full sm:w-auto"
+                size="sm"
+                variant="secondary"
+                onClick={markAllPresent}
+                disabled={alreadyMarked}
+                className="flex-1 sm:flex-initial"
               >
-                <Save className="h-4 w-4" />
-                {saveMutation.isSuccess
-                  ? 'Saved'
-                  : alreadyMarked
-                  ? 'Already Marked'
-                  : 'Save Attendance'}
+                <CheckCircle2 className="h-4 w-4 text-[#226E30]" />
+                All Present
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={markAllAbsent}
+                disabled={alreadyMarked}
+                className="flex-1 sm:flex-initial"
+              >
+                <XCircle className="h-4 w-4 text-[#C22B58]" />
+                All Absent
               </Button>
             </div>
+          </div>
 
-            {isFetching && !loadingRoster && (
-              <p className="mt-2 text-center text-xs text-slate-400">
-                Refreshing…
-              </p>
-            )}
-          </CardBody>
-        </Card>
+          {/* Student list */}
+          <ul className="divide-y divide-[#302365]/8">
+            {roster.map((s) => {
+              const isAbsent = absentIds.has(s.studentId);
+              return (
+                <li
+                  key={s.studentId}
+                  className="flex items-center gap-3.5 py-3.5 transition-colors hover:bg-[#FFF6D8]/30 px-2 rounded-xl"
+                >
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-[#B7A4E8] bg-[#DCD2F5] font-heading text-xs font-bold text-[#302365]">
+                    {initials(s.name)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-heading text-sm font-bold text-[#302365]">
+                      {s.name}
+                    </p>
+                    <p className="truncate text-xs font-semibold text-[#302365]/60">
+                      Roll: {s.rollNo}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => toggle(s.studentId)}
+                    disabled={alreadyMarked}
+                    className={cn(
+                      'shrink-0 rounded-xl border-2 px-4 py-1.5 font-heading text-xs font-bold transition duration-150 cursor-pointer shadow-xs',
+                      'disabled:opacity-50 disabled:cursor-not-allowed',
+                      isAbsent
+                        ? 'border-[#E87999] bg-[#FCE4EB] text-[#C22B58] hover:bg-[#fad3dd]'
+                        : 'border-[#62A66C] bg-[#E8F5DF] text-[#226E30] hover:bg-[#d8edd0]'
+                    )}
+                  >
+                    {isAbsent ? 'Absent' : 'Present ✦'}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+
+          {/* Save bar */}
+          <div className="mt-6 flex flex-col gap-3 border-t-2 border-[#302365]/10 pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2 text-xs font-semibold text-[#302365]/70">
+              <Calendar className="h-4 w-4 text-[#2587B8]" />
+              Recording roll call for {formatDate(date)}
+            </div>
+            <Button
+              onClick={() => saveMutation.mutate()}
+              loading={saveMutation.isPending}
+              disabled={!roster.length || saveMutation.isSuccess || alreadyMarked}
+              className="w-full sm:w-auto"
+            >
+              <Save className="h-4 w-4" />
+              {saveMutation.isSuccess
+                ? 'Saved Successfully!'
+                : alreadyMarked
+                ? 'Already Marked'
+                : 'Save Attendance'}
+            </Button>
+          </div>
+
+          {isFetching && !loadingRoster && (
+            <p className="mt-2 text-center font-heading text-xs font-bold text-[#302365]/50">
+              Refreshing class roster…
+            </p>
+          )}
+        </div>
       )}
     </div>
   );

@@ -32,7 +32,6 @@ import { Modal } from '@/components/ui/Modal';
 import { Loader } from '@/components/feedback/Loader';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { Badge } from '@/components/ui/Badge';
-import { Card, CardBody } from '@/components/ui/Card';
 import { useAuthStore } from '@/store/authStore';
 import { cn } from '@/lib/utils';
 import type {
@@ -98,19 +97,18 @@ export const TeacherNoticesPage = () => {
     if (!subjects) return [];
     const seen = new Map<string, { id: string; name: string }>();
     subjects.forEach((s) => {
-      if (!seen.has(s.branchId)) {
+      if (s.branchId && !seen.has(s.branchId)) {
         seen.set(s.branchId, { id: s.branchId, name: s.branchName });
       }
     });
     return Array.from(seen.values());
   }, [subjects]);
 
-  // ─── Form ─────────────────────────────────────────────────
   const {
     register,
     handleSubmit,
-    reset,
     watch,
+    reset,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -120,32 +118,27 @@ export const TeacherNoticesPage = () => {
   const target = watch('target');
 
   const sendMutation = useMutation({
-    mutationFn: (data: FormData) => {
-      const payload = {
-        title: data.title,
-        message: data.message,
-        branchId: data.target === 'ALL' ? null : data.branchId || null,
-        semester: data.target === 'CLASS' ? data.semester ?? null : null,
-        batch: data.target === 'BATCH' ? data.batch || null : null,
-      };
-      return sendNotice(payload, pickedFile ?? undefined);
-    },
+    mutationFn: (data: FormData) =>
+      sendNotice(
+        {
+          title: data.title,
+          message: data.message,
+          branchId: data.target === 'CLASS' ? data.branchId : undefined,
+          semester: data.target === 'CLASS' ? data.semester : undefined,
+          batch: data.target === 'BATCH' ? data.batch : undefined,
+        },
+        pickedFile ?? undefined
+      ),
     onSuccess: () => {
-      toast.success('Notice sent');
-      setTimeout(() => {
-        qc.invalidateQueries({ queryKey: ['notifications-sent'] });
-      }, 300);
-      qc.invalidateQueries({ queryKey: ['unread'] });
-      reset({ target: 'ALL' });
-      setPickedFile(null);
+      toast.success('Notice published to students! 📢');
+      qc.invalidateQueries({ queryKey: ['notifications-sent'] });
       setSendOpen(false);
+      setPickedFile(null);
+      reset({ target: 'ALL' });
     },
     onError: (e: AxiosError<ApiError>) => {
       const raw = (e.response?.data?.error ?? e.response?.data?.message ?? '').toString();
-      console.error('send-notice failed:', e.response?.data);
-      toast.error(
-        raw.length > 200 ? 'Failed to send notice.' : raw || 'Failed to send notice'
-      );
+      toast.error(raw || 'Failed to send notice');
     },
   });
 
@@ -171,7 +164,7 @@ export const TeacherNoticesPage = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['notifications-inbox'] });
       qc.invalidateQueries({ queryKey: ['unread'] });
-      toast.success('Notification deleted');
+      toast.success('Notification removed');
     },
   });
 
@@ -183,33 +176,39 @@ export const TeacherNoticesPage = () => {
   const isLoading = tab === 'inbox' ? loadingInbox : loadingSent;
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
-        title="Notices"
-        subtitle="Send and receive notifications."
+        title="Notice Board & Broadcasts 📢"
+        subtitle="Publish notices to batches or classes, and view faculty notifications."
         action={
-          <Button onClick={() => setSendOpen(true)}>
+          <Button
+            onClick={() => {
+              setSendOpen(true);
+              setPickedFile(null);
+              reset({ target: 'ALL' });
+            }}
+          >
             <Plus className="h-4 w-4" />
-            Send Notice
+            Post Notice
           </Button>
         }
       />
 
-      {/* Tabs — horizontally scrollable on mobile */}
-      <div className="mb-5 flex items-center gap-2 overflow-x-auto border-b border-slate-200">
+      {/* Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
         <button
           onClick={() => setTab('inbox')}
           className={cn(
-            'flex shrink-0 items-center gap-2 px-4 py-2 text-sm font-medium transition',
+            'flex shrink-0 items-center gap-2 rounded-2xl border-2 px-5 py-2.5 font-heading text-sm font-bold transition-all duration-150 cursor-pointer shadow-[2px_2px_0px_rgba(48,35,101,0.06)]',
             tab === 'inbox'
-              ? 'border-b-2 border-indigo-600 text-indigo-600'
-              : 'text-slate-500 hover:text-slate-800'
+              ? 'border-[#2587B8] bg-[#DFF2FC] text-[#2587B8] shadow-[2px_2px_0px_#2587B8]'
+              : 'border-[#302365]/15 bg-white text-[#302365]/70 hover:bg-[#FFF6D8] hover:text-[#302365]'
           )}
         >
           <Bell className="h-4 w-4" />
-          Inbox
+          Received Inbox
           {unreadCount > 0 && (
-            <span className="grid h-5 min-w-5 place-items-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
+            <span className="grid h-5 min-w-5 place-items-center rounded-full bg-[#E87999] px-1.5 font-heading text-[10px] font-bold text-white">
               {unreadCount}
             </span>
           )}
@@ -217,14 +216,14 @@ export const TeacherNoticesPage = () => {
         <button
           onClick={() => setTab('sent')}
           className={cn(
-            'flex shrink-0 items-center gap-2 px-4 py-2 text-sm font-medium transition',
+            'flex shrink-0 items-center gap-2 rounded-2xl border-2 px-5 py-2.5 font-heading text-sm font-bold transition-all duration-150 cursor-pointer shadow-[2px_2px_0px_rgba(48,35,101,0.06)]',
             tab === 'sent'
-              ? 'border-b-2 border-indigo-600 text-indigo-600'
-              : 'text-slate-500 hover:text-slate-800'
+              ? 'border-[#62A66C] bg-[#E8F5DF] text-[#226E30] shadow-[2px_2px_0px_#62A66C]'
+              : 'border-[#302365]/15 bg-white text-[#302365]/70 hover:bg-[#FFF6D8] hover:text-[#302365]'
           )}
         >
           <BellRing className="h-4 w-4" />
-          Sent
+          Broadcasted Sent
         </button>
 
         {tab === 'inbox' && unreadCount > 0 && (
@@ -236,7 +235,7 @@ export const TeacherNoticesPage = () => {
             className="ml-auto shrink-0"
           >
             <CheckCheck className="h-4 w-4" />
-            <span className="hidden sm:inline">Mark all read</span>
+            <span className="hidden sm:inline">Mark all as read</span>
           </Button>
         )}
       </div>
@@ -247,11 +246,11 @@ export const TeacherNoticesPage = () => {
       ) : tab === 'inbox' ? (
         !inbox?.length ? (
           <EmptyState
-            title="No notifications"
-            subtitle="You have no notifications right now."
+            title="No incoming notifications"
+            subtitle="Campus notices and administrative updates will appear here."
           />
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             {inbox.map((n) => (
               <NotificationCard
                 key={n.notificationId}
@@ -266,10 +265,10 @@ export const TeacherNoticesPage = () => {
       ) : !sent?.length ? (
         <EmptyState
           title="No sent notices"
-          subtitle="Notices you send will appear here."
+          subtitle="Notices you broadcast to your students will be listed here."
         />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3.5">
           {sent.map((n) => (
             <SentCard key={n.batchId} notification={n} />
           ))}
@@ -284,7 +283,7 @@ export const TeacherNoticesPage = () => {
           setPickedFile(null);
           reset({ target: 'ALL' });
         }}
-        title="Send Notice"
+        title="Broadcast a New Notice 📢"
         size="lg"
       >
         <form
@@ -292,47 +291,47 @@ export const TeacherNoticesPage = () => {
           className="space-y-4"
         >
           <Input
-            label="Title"
-            placeholder="Mid-semester exam schedule"
+            label="Notice Subject / Headline"
+            placeholder="e.g. Mid-semester practical exam schedule"
             {...register('title')}
             error={errors.title?.message}
           />
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
-              Message
+            <label className="mb-1.5 block font-heading text-xs font-bold uppercase tracking-wider text-[#302365]">
+              Notice Message
             </label>
             <textarea
               rows={4}
-              placeholder="Details of the notice…"
+              placeholder="Enter full announcement details, timings, instructions, and room numbers…"
               {...register('message')}
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+              className="w-full rounded-xl border-2 border-[#302365]/20 bg-white px-3.5 py-2.5 font-medium text-sm text-[#302365] outline-none transition placeholder:text-[#302365]/40 focus:border-[#302365] focus:ring-2 focus:ring-[#DCD2F5]"
             />
             {errors.message && (
-              <p className="mt-1 text-xs text-red-600">{errors.message.message}</p>
+              <p className="mt-1 text-xs font-medium text-[#C22B58]">{errors.message.message}</p>
             )}
           </div>
 
           {/* Target selection */}
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">
-              Send to
+          <div className="rounded-2xl border-2 border-[#302365]/10 bg-[#FFF6D8] p-4">
+            <p className="mb-2 font-heading text-xs font-bold uppercase tracking-wider text-[#302365]/80">
+              Recipient Target Group
             </p>
-            <div className="grid gap-2 sm:grid-cols-3">
-              <label className="flex cursor-pointer items-center gap-2 rounded-lg bg-white p-3 text-sm ring-1 ring-slate-200 has-[:checked:ring-2 has-checked]:ring-indigo-500">
+            <div className="grid gap-2.5 sm:grid-cols-3">
+              <label className="flex cursor-pointer items-center gap-2.5 rounded-xl border-2 border-[#302365]/15 bg-white p-3 font-heading text-xs font-bold text-[#302365] transition hover:bg-[#DFF2FC]">
                 <input type="radio" value="ALL" {...register('target')} />
-                <Users className="h-4 w-4 shrink-0 text-slate-400" />
-                <span className="truncate">Everyone</span>
+                <Users className="h-4 w-4 shrink-0 text-[#2587B8]" />
+                <span className="truncate">All Students</span>
               </label>
-              <label className="flex cursor-pointer items-center gap-2 rounded-lg bg-white p-3 text-sm ring-1 ring-slate-200 has-[:checked:ring-2 has-checked]:ring-indigo-500">
+              <label className="flex cursor-pointer items-center gap-2.5 rounded-xl border-2 border-[#302365]/15 bg-white p-3 font-heading text-xs font-bold text-[#302365] transition hover:bg-[#DFF2FC]">
                 <input type="radio" value="CLASS" {...register('target')} />
-                <BookOpen className="h-4 w-4 shrink-0 text-slate-400" />
-                <span className="truncate">A class</span>
+                <BookOpen className="h-4 w-4 shrink-0 text-[#62A66C]" />
+                <span className="truncate">Specific Class</span>
               </label>
-              <label className="flex cursor-pointer items-center gap-2 rounded-lg bg-white p-3 text-sm ring-1 ring-slate-200 has-[:checked:ring-2 has-checked]:ring-indigo-500">
+              <label className="flex cursor-pointer items-center gap-2.5 rounded-xl border-2 border-[#302365]/15 bg-white p-3 font-heading text-xs font-bold text-[#302365] transition hover:bg-[#DFF2FC]">
                 <input type="radio" value="BATCH" {...register('target')} />
-                <Bell className="h-4 w-4 shrink-0 text-slate-400" />
-                <span className="truncate">A batch</span>
+                <Bell className="h-4 w-4 shrink-0 text-[#E89D42]" />
+                <span className="truncate">Graduation Batch</span>
               </label>
             </div>
           </div>
@@ -348,6 +347,7 @@ export const TeacherNoticesPage = () => {
                   </option>
                 ))}
               </Select>
+
               <Select
                 label="Semester"
                 {...register('semester', { valueAsNumber: true })}
@@ -363,28 +363,27 @@ export const TeacherNoticesPage = () => {
           )}
 
           {target === 'BATCH' && (
-            <Input label="Batch" placeholder="2023-2027" {...register('batch')} />
+            <Input label="Graduation Batch Year" placeholder="e.g. 2024-2028" {...register('batch')} />
           )}
 
           {/* Attachment */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
-              Attachment (optional)
+            <label className="mb-1.5 block font-heading text-xs font-bold uppercase tracking-wider text-[#302365]">
+              Circular Attachment (optional PDF/Image)
             </label>
             <input
               type="file"
               onChange={(e) => setPickedFile(e.target.files?.[0] ?? null)}
-              className="block w-full text-sm text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-3 file:py-2 file:text-xs file:font-medium file:text-indigo-700 hover:file:bg-indigo-100 sm:file:px-4 sm:file:text-sm"
+              className="block w-full text-sm text-[#302365] file:mr-3 file:rounded-xl file:border-2 file:border-[#302365]/15 file:bg-[#DFF2FC] file:px-4 file:py-2 file:font-heading file:text-xs file:font-bold file:text-[#2587B8] hover:file:bg-[#cbe9f9] cursor-pointer"
             />
             {pickedFile && (
-              <p className="mt-1 text-xs text-slate-500">
-                <Paperclip className="mr-1 inline h-3 w-3" />
-                {pickedFile.name}
+              <p className="mt-1.5 font-heading text-xs font-bold text-[#2587B8]">
+                <Paperclip className="mr-1 inline h-3.5 w-3.5" />
+                Selected: {pickedFile.name}
               </p>
             )}
           </div>
 
-          {/* Footer — stacks on mobile */}
           <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:justify-end">
             <Button
               type="button"
@@ -398,7 +397,7 @@ export const TeacherNoticesPage = () => {
               Cancel
             </Button>
             <Button type="submit" loading={sendMutation.isPending}>
-              Send
+              Send Notice
             </Button>
           </div>
         </form>
@@ -421,15 +420,24 @@ const NotificationCard = ({
   onMarkRead,
   onDelete,
 }: CardProps) => (
-  <Card>
-    <CardBody className="flex items-start gap-3 p-4 sm:gap-4 sm:p-5">
+  <div
+    className={cn(
+      'rounded-3xl border-2 p-5 transition-all shadow-[3px_3px_0px_rgba(48,35,101,0.06)]',
+      !n.read
+        ? 'border-[#2587B8] bg-[#DFF2FC]/40'
+        : 'border-[#302365]/12 bg-white'
+    )}
+  >
+    <div className="flex items-start gap-4">
       <div
         className={cn(
-          'grid h-10 w-10 shrink-0 place-items-center rounded-lg',
-          n.read ? 'bg-slate-100 text-slate-400' : 'bg-indigo-100 text-indigo-600'
+          'grid h-12 w-12 shrink-0 place-items-center rounded-2xl border-2 shadow-xs',
+          n.read
+            ? 'border-[#302365]/15 bg-[#FFF6D8] text-[#302365]/60'
+            : 'border-[#2587B8] bg-[#DFF2FC] text-[#2587B8]'
         )}
       >
-        <Bell className="h-5 w-5" />
+        <Bell className="h-6 w-6" />
       </div>
 
       <div className="min-w-0 flex-1">
@@ -438,27 +446,27 @@ const NotificationCard = ({
             <div className="flex flex-wrap items-center gap-2">
               <h3
                 className={cn(
-                  'truncate',
+                  'font-heading text-lg',
                   n.read
-                    ? 'font-medium text-slate-700'
-                    : 'font-semibold text-slate-900'
+                    ? 'font-bold text-[#302365]'
+                    : 'font-extrabold text-[#302365]'
                 )}
               >
                 {n.title}
               </h3>
               {n.type && <Badge variant="info">{n.type}</Badge>}
               {!n.read && !isSentView && (
-                <span className="h-2 w-2 shrink-0 rounded-full bg-indigo-500" />
+                <span className="h-2.5 w-2.5 rounded-full bg-[#E87999] ring-2 ring-white" />
               )}
             </div>
-            <p className="mt-1 whitespace-pre-wrap-break-words text-sm text-slate-600">
+            <p className="mt-1.5 font-medium text-sm text-[#302365] whitespace-pre-wrap break-words leading-relaxed">
               {n.message}
             </p>
 
-            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
+            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold text-[#302365]/60">
               <span>{formatDateTime(n.createdAt)}</span>
-              {n.targetGroup && <span>· {n.targetGroup}</span>}
-              {n.batchYear && <span>· Batch {n.batchYear}</span>}
+              {n.targetGroup && <span>· Target: {n.targetGroup}</span>}
+              {n.batchYear && <span>· Batch: {n.batchYear}</span>}
               {n.semester != null && <span>· Sem {n.semester}</span>}
             </div>
 
@@ -467,19 +475,19 @@ const NotificationCard = ({
                 href={n.attachmentUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:underline"
+                className="mt-3 inline-flex items-center gap-1.5 font-heading text-xs font-bold text-[#2587B8] hover:underline"
               >
-                <Paperclip className="h-3 w-3" />
+                <Paperclip className="h-3.5 w-3.5" />
                 View attachment
               </a>
             )}
           </div>
 
-          <div className="flex shrink-0 gap-1">
+          <div className="flex shrink-0 items-center gap-1.5">
             {!isSentView && !n.read && (
               <button
                 onClick={onMarkRead}
-                className="rounded-lg p-2 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600"
+                className="rounded-xl border border-[#302365]/15 bg-white p-2 text-[#302365] hover:bg-[#E8F5DF] hover:text-[#226E30] transition cursor-pointer shadow-xs"
                 title="Mark as read"
               >
                 <CheckCheck className="h-4 w-4" />
@@ -488,7 +496,7 @@ const NotificationCard = ({
             {!isSentView && (
               <button
                 onClick={onDelete}
-                className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                className="rounded-xl border border-[#302365]/15 bg-white p-2 text-[#302365] hover:bg-[#FCE4EB] hover:text-[#C22B58] transition cursor-pointer shadow-xs"
                 title="Delete"
               >
                 <Trash2 className="h-4 w-4" />
@@ -497,8 +505,8 @@ const NotificationCard = ({
           </div>
         </div>
       </div>
-    </CardBody>
-  </Card>
+    </div>
+  </div>
 );
 
 // ─── Sent card ──────────────────────────────────────────────
@@ -507,31 +515,31 @@ interface SentCardProps {
 }
 
 const SentCard = ({ notification: n }: SentCardProps) => (
-  <Card>
-    <CardBody className="flex items-start gap-3 p-4 sm:gap-4 sm:p-5">
-      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-emerald-100 text-emerald-600">
-        <BellRing className="h-5 w-5" />
+  <div className="rounded-3xl border-2 border-[#302365]/12 bg-white p-5 shadow-[3px_3px_0px_rgba(48,35,101,0.06)]">
+    <div className="flex items-start gap-4">
+      <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border-2 border-[#62A66C] bg-[#E8F5DF] text-[#226E30] shadow-xs">
+        <BellRing className="h-6 w-6" />
       </div>
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <h3 className="truncate font-semibold text-slate-900">{n.title}</h3>
+          <h3 className="font-heading text-lg font-bold text-[#302365]">{n.title}</h3>
           {n.type && <Badge variant="info">{n.type}</Badge>}
           <Badge variant="success">
             {n.recipientCount}{' '}
-            {n.recipientCount === 1 ? 'recipient' : 'recipients'}
+            {n.recipientCount === 1 ? 'recipient' : 'recipients reached'}
           </Badge>
         </div>
 
-        <p className="mt-1 whitespace-pre-wrap-break-words text-sm text-slate-600">
+        <p className="mt-1.5 font-medium text-sm text-[#302365] whitespace-pre-wrap break-words leading-relaxed">
           {n.message}
         </p>
 
-        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold text-[#302365]/60">
           <span>{formatDateTime(n.createdAt)}</span>
-          {n.targetGroup && <span>· {n.targetGroup}</span>}
+          {n.targetGroup && <span>· Target: {n.targetGroup}</span>}
         </div>
       </div>
-    </CardBody>
-  </Card>
+    </div>
+  </div>
 );

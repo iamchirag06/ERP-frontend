@@ -162,11 +162,21 @@ export const AdminTimetablePage = () => {
 
   const onSubmit = (d: FormData) => addMutation.mutate(d);
 
+  const DAY_THEMES: Record<string, { bg: string; border: string; pill: string }> = {
+    MONDAY: { bg: 'bg-[#DFF2FC]/40', border: 'border-[#2587B8]/30', pill: 'bg-[#DFF2FC] text-[#2587B8]' },
+    TUESDAY: { bg: 'bg-[#E8F5DF]/40', border: 'border-[#62A66C]/30', pill: 'bg-[#E8F5DF] text-[#62A66C]' },
+    WEDNESDAY: { bg: 'bg-[#FFF0C9]/40', border: 'border-[#E89D42]/30', pill: 'bg-[#FFF0C9] text-[#B87114]' },
+    THURSDAY: { bg: 'bg-[#FCE4EB]/40', border: 'border-[#E87999]/30', pill: 'bg-[#FCE4EB] text-[#E87999]' },
+    FRIDAY: { bg: 'bg-[#DCD2F5]/40', border: 'border-[#7860B8]/30', pill: 'bg-[#DCD2F5] text-[#7860B8]' },
+    SATURDAY: { bg: 'bg-[#FFF6D8]/60', border: 'border-[#302365]/20', pill: 'bg-[#FFF6D8] text-[#302365]' },
+    SUNDAY: { bg: 'bg-[#E8F5DF]/40', border: 'border-[#62A66C]/30', pill: 'bg-[#E8F5DF] text-[#62A66C]' },
+  };
+
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         title="Timetable"
-        subtitle="Schedule classes by branch, semester, day and time slot."
+        subtitle="Schedule weekly classes by branch, semester, day and room assignment."
         action={
           <Button onClick={() => setAddOpen(true)}>
             <Plus className="h-4 w-4" />
@@ -176,7 +186,7 @@ export const AdminTimetablePage = () => {
       />
 
       {/* Filter bar */}
-      <div className="mb-5 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 rounded-2xl border-2 border-[#302365]/10 bg-white p-4 shadow-[3px_3px_0px_rgba(48,35,101,0.06)] sm:grid-cols-2 lg:grid-cols-4">
         <Select
           label="Branch"
           value={effectiveViewBranch}
@@ -211,53 +221,56 @@ export const AdminTimetablePage = () => {
           subtitle="Add the first entry for this branch and semester."
         />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {DAYS.map((day) => {
             const dayEntries = entries
               .filter((e) => e.day === day)
               .sort((a, b) => a.startTime.localeCompare(b.startTime));
+            const theme = DAY_THEMES[day] ?? { bg: 'bg-white', border: 'border-[#302365]/10', pill: 'bg-slate-100' };
 
             return (
               <div
                 key={day}
-                className="rounded-xl border border-slate-200 bg-white p-4"
+                className={`rounded-2xl border-2 p-4 shadow-[3px_3px_0px_rgba(48,35,101,0.06)] ${theme.bg} ${theme.border}`}
               >
-                <div className="mb-3 flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-indigo-500" />
-                  <h3 className="font-semibold capitalize text-slate-800">
-                    {day.toLowerCase()}
-                  </h3>
+                <div className="mb-3.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-[#302365]" />
+                    <h3 className="font-heading font-bold capitalize text-[#302365]">
+                      {day.toLowerCase()}
+                    </h3>
+                  </div>
                   {dayEntries.length > 0 && (
-                    <span className="ml-auto text-xs text-slate-400">
-                      {dayEntries.length}
+                    <span className="rounded-full border border-[#302365]/15 bg-white/80 px-2 py-0.5 font-heading text-xs font-bold text-[#302365]">
+                      {dayEntries.length} {dayEntries.length === 1 ? 'class' : 'classes'}
                     </span>
                   )}
                 </div>
 
                 {dayEntries.length === 0 ? (
-                  <p className="text-xs italic text-slate-400">No classes</p>
+                  <p className="py-4 text-center text-xs italic text-[#302365]/50">No classes scheduled</p>
                 ) : (
-                  <ul className="space-y-2">
+                  <ul className="space-y-2.5">
                     {dayEntries.map((e) => (
                       <li
                         key={e.id}
-                        className="rounded-lg border border-slate-100 bg-slate-50 p-2 text-xs"
+                        className="rounded-xl border border-[#302365]/10 bg-white/90 p-3 text-xs shadow-sm"
                       >
-                        <div className="flex items-center gap-1 text-slate-700">
-                          <Clock className="h-3 w-3" />
-                          {e.startTime.slice(0, 5)}–{e.endTime.slice(0, 5)}
+                        <div className="flex items-center gap-1.5 font-heading font-semibold text-[#2587B8]">
+                          <Clock className="h-3.5 w-3.5" />
+                          {e.startTime.slice(0, 5)} – {e.endTime.slice(0, 5)}
                         </div>
-                        <p className="mt-1 font-medium text-slate-800">
+                        <p className="mt-1.5 font-heading font-bold text-[#302365]">
                           <Badge variant="info">{e.subject.code}</Badge>{' '}
-                          {e.subject.name.trim()}
+                          <span className="ml-1">{e.subject.name.trim()}</span>
                         </p>
-                        <div className="mt-0.5 flex items-center gap-1 text-slate-500">
-                          <UserIcon className="h-3 w-3" />
-                          {e.teacher.name}
+                        <div className="mt-1 flex items-center gap-1.5 text-[#302365]/70">
+                          <UserIcon className="h-3.5 w-3.5 text-[#302365]/50" />
+                          <span>{e.teacher.name}</span>
                         </div>
-                        <div className="mt-0.5 flex items-center gap-1 text-slate-500">
-                          <MapPin className="h-3 w-3" />
-                          {e.roomNumber}
+                        <div className="mt-1 flex items-center gap-1.5 text-[#302365]/70">
+                          <MapPin className="h-3.5 w-3.5 text-[#302365]/50" />
+                          <span>Room: {e.roomNumber}</span>
                         </div>
                       </li>
                     ))}

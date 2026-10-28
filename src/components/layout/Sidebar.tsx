@@ -18,6 +18,7 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Role } from '@/types/common';
+import { DoodleLaptop, DoodleHeart, SparkleIcon } from '@/components/ui/Illustrations';
 
 interface NavItem {
   to: string;
@@ -67,11 +68,18 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
   if (!role) return null;
   const items = navByRole[role];
 
+  const rolePillColor =
+    role === 'STUDENT'
+      ? 'bg-[#DFF2FC] text-[#2587B8] border-[#99D4F2]'
+      : role === 'TEACHER'
+      ? 'bg-[#E8F5DF] text-[#62A66C] border-[#A3D995]'
+      : 'bg-[#FFF0C9] text-[#E89D42] border-[#F7D37E]';
+
   return (
     <aside
       className={cn(
         // Base styles
-        'fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-slate-200 bg-white transition-transform duration-200',
+        'fixed inset-y-0 left-0 z-40 flex w-68 flex-col border-r-2 border-[#302365]/12 bg-[#FFFDF7] transition-transform duration-200 shadow-[4px_0px_0px_rgba(48,35,101,0.04)]',
         // Desktop: static, always visible
         'md:static md:translate-x-0',
         // Mobile: slide in/out
@@ -79,30 +87,38 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
       )}
     >
       {/* Header */}
-      <div className="flex h-16 items-center gap-2 border-b border-slate-200 px-4">
-        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-indigo-600 font-bold text-white">
-          E
+      <div className="flex h-20 items-center gap-3 border-b-2 border-[#302365]/10 px-4 bg-[#FFFDF7]">
+        <div className="relative shrink-0">
+          <DoodleLaptop className="h-10 w-10" />
+          <SparkleIcon className="absolute -top-1 -right-1 h-3.5 w-3.5 text-amber-400" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-slate-800">
-            College ERP
-          </p>
-          <p className="truncate text-xs capitalize text-slate-500">
+          <div className="flex items-center gap-1">
+            <h2 className="truncate font-heading text-lg font-bold tracking-wide text-[#302365]">
+              College ERP
+            </h2>
+          </div>
+          <span
+            className={cn(
+              'inline-block rounded-full border px-2 py-0.2 text-[10px] font-bold tracking-wide uppercase',
+              rolePillColor
+            )}
+          >
             {role.toLowerCase()} portal
-          </p>
+          </span>
         </div>
         {/* Close button — mobile only */}
         <button
           onClick={onClose}
-          className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 md:hidden"
+          className="rounded-xl border border-[#302365]/20 p-1.5 text-[#302365] hover:bg-[#FCE4EB] md:hidden cursor-pointer"
           aria-label="Close menu"
         >
-          <X className="h-5 w-5" />
+          <X className="h-4 w-4" />
         </button>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+      {/* Nav list */}
+      <nav className="flex-1 space-y-1.5 overflow-y-auto p-3">
         {items.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
@@ -111,10 +127,10 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
             onClick={onClose}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition',
+                'flex items-center gap-3 rounded-xl px-3.5 py-2.5 font-heading text-sm font-semibold transition-all duration-150',
                 isActive
-                  ? 'bg-indigo-50 text-indigo-700'
-                  : 'text-slate-600 hover:bg-slate-50'
+                  ? 'bg-[#DFF2FC] text-[#2587B8] border-2 border-[#99D4F2] shadow-[2px_2px_0px_#2587B8] translate-x-1'
+                  : 'text-[#302365]/80 border-2 border-transparent hover:bg-[#FFF6D8] hover:text-[#302365]'
               )
             }
           >
@@ -123,6 +139,22 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
           </NavLink>
         ))}
       </nav>
+
+      {/* Footer doodle accent */}
+      <div className="border-t-2 border-[#302365]/10 p-3 bg-[#FFFDF7]/80">
+        <div className="flex items-center justify-between rounded-xl border border-[#302365]/10 bg-[#FFF6D8] p-2.5">
+          <div className="flex items-center gap-2">
+            <DoodleHeart className="h-6 w-6" />
+            <div>
+              <p className="font-heading text-xs font-bold text-[#302365]">
+                Happy Learning!
+              </p>
+              <p className="text-[10px] text-[#302365]/70">Campus ERP Portal</p>
+            </div>
+          </div>
+          <SparkleIcon className="h-4 w-4 text-amber-500" />
+        </div>
+      </div>
     </aside>
   );
 };

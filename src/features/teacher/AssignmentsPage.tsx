@@ -29,11 +29,11 @@ import { Modal } from '@/components/ui/Modal';
 import { Loader } from '@/components/feedback/Loader';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ConfirmDialog } from '@/components/feedback/ConfirmDialog';
-import { Card, CardBody } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { useAuthStore } from '@/store/authStore';
 import type { AssignmentResponse } from '@/types/academic';
 import { SubmissionsModal } from './SubmissionsModal';
+import { SparkleIcon } from '@/components/ui/Illustrations';
 
 const schema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
@@ -106,43 +106,41 @@ export const TeacherAssignmentsPage = () => {
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   const createMutation = useMutation({
-    mutationFn: (data: FormData) =>
-      createAssignment(
+    mutationFn: (d: FormData) => {
+      if (!effectiveSubjectId) throw new Error('Missing subject');
+      return createAssignment(
         {
-          title: data.title,
-          description: data.description,
-          deadline: toBackendDeadline(data.deadline),
           subjectId: effectiveSubjectId,
+          title: d.title,
+          description: d.description,
+          deadline: toBackendDeadline(d.deadline),
         },
         pickedFile ?? undefined
-      ),
+      );
+    },
     onSuccess: () => {
-      toast.success('Assignment created');
+      toast.success('Assignment created! 📝');
       qc.invalidateQueries({ queryKey: ['assignments', effectiveSubjectId] });
-      reset();
-      setPickedFile(null);
-      if (fileRef.current) fileRef.current.value = '';
       setCreateOpen(false);
+      setPickedFile(null);
+      reset();
     },
     onError: (e: AxiosError<ApiError>) => {
       const raw = (e.response?.data?.error ?? e.response?.data?.message ?? '').toString();
-      console.error('create-assignment failed:', e.response?.data);
-      toast.error(
-        raw.length > 200
-          ? 'Failed to create assignment.'
-          : raw || 'Failed to create assignment'
-      );
+      toast.error(raw || 'Failed to create assignment');
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: FormData }) =>
-      updateAssignment(id, {
-        title: data.title,
-        description: data.description,
-        deadline: toBackendDeadline(data.deadline),
-        subjectId: effectiveSubjectId,
-      }),
+    mutationFn: (d: FormData) => {
+      if (!editFor) throw new Error('No assignment');
+      return updateAssignment(editFor.id, {
+        subjectId: editFor.subject?.id ?? effectiveSubjectId,
+        title: d.title,
+        description: d.description,
+        deadline: toBackendDeadline(d.deadline),
+      });
+    },
     onSuccess: () => {
       toast.success('Assignment updated');
       qc.invalidateQueries({ queryKey: ['assignments', effectiveSubjectId] });
@@ -150,9 +148,7 @@ export const TeacherAssignmentsPage = () => {
     },
     onError: (e: AxiosError<ApiError>) => {
       const raw = (e.response?.data?.error ?? e.response?.data?.message ?? '').toString();
-      toast.error(
-        raw.length > 200 ? 'Failed to update assignment.' : raw || 'Failed to update'
-      );
+      toast.error(raw || 'Failed to update assignment');
     },
   });
 
@@ -169,10 +165,7 @@ export const TeacherAssignmentsPage = () => {
   });
 
   const onSubmitCreate = (d: FormData) => createMutation.mutate(d);
-  const onSubmitEdit = (d: FormData) => {
-    if (!editFor) return;
-    updateMutation.mutate({ id: editFor.id, data: d });
-  };
+  const onSubmitEdit = (d: FormData) => updateMutation.mutate(d);
 
   const openEdit = (a: AssignmentResponse) => {
     setEditFor(a);
@@ -184,14 +177,18 @@ export const TeacherAssignmentsPage = () => {
   };
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
-        title="Assignments"
-        subtitle="Create and manage assignments for your subjects."
+        title="Class Assignments 📝"
+        subtitle="Publish tasks, collect submissions, and grade student submissions."
         action={
           <Button
-            onClick={() => setCreateOpen(true)}
-            disabled={!effectiveSubjectId}
+            onClick={() => {
+              setCreateOpen(true);
+              setPickedFile(null);
+              reset();
+            }}
+            disabled={!subjects?.length}
           >
             <Plus className="h-4 w-4" />
             Create Assignment
@@ -200,9 +197,9 @@ export const TeacherAssignmentsPage = () => {
       />
 
       {/* Subject selector */}
-      <div className="mb-4 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:mb-5 sm:grid-cols-2">
+      <div className="grid gap-4 rounded-3xl border-2 border-[#302365]/12 bg-white p-5 shadow-[3px_3px_0px_rgba(48,35,101,0.06)] sm:grid-cols-2">
         <Select
-          label="Subject"
+          label="Select Subject"
           value={effectiveSubjectId}
           onChange={(e) => setSubjectId(e.target.value)}
           disabled={!subjects?.length}
@@ -216,9 +213,10 @@ export const TeacherAssignmentsPage = () => {
         </Select>
         {currentSubject && (
           <div className="flex items-end">
-            <p className="text-xs text-slate-500">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#302365]/15 bg-[#FFF6D8] px-3.5 py-1.5 font-heading text-xs font-bold text-[#302365]">
+              <SparkleIcon className="h-3.5 w-3.5 text-amber-500" />
               {currentSubject.branchName} · Semester {currentSubject.semester}
-            </p>
+            </span>
           </div>
         )}
       </div>
@@ -227,100 +225,109 @@ export const TeacherAssignmentsPage = () => {
       {!subjects?.length ? (
         <EmptyState
           title="No subjects assigned"
-          subtitle="Ask your admin to assign you a subject."
+          subtitle="Ask your admin to assign you a subject before managing assignments."
         />
       ) : isLoading ? (
         <Loader />
       ) : !assignments?.length ? (
         <EmptyState
-          title="No assignments yet"
-          subtitle="Create the first assignment for this subject."
+          title="No assignments posted yet"
+          subtitle="Click 'Create Assignment' to assign the first task for this class."
         />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3.5">
           {assignments.map((a) => {
             const overdue = new Date(a.deadline).getTime() < Date.now();
             return (
-              <Card key={a.id}>
-                <CardBody className="p-4 sm:p-5">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
-                    {/* Icon + title (mobile-friendly) */}
-                    <div className="flex items-start gap-3 sm:contents">
-                      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-indigo-50 text-indigo-600 sm:h-11 sm:w-11">
-                        <FileText className="h-5 w-5" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="font-semibold text-slate-800">{a.title}</h3>
-                          {overdue ? (
-                            <Badge variant="danger">Closed</Badge>
-                          ) : (
-                            <Badge variant="success">Open</Badge>
-                          )}
-                        </div>
-
-                        {a.description && (
-                          <p className="mt-1 text-sm text-slate-600 line-clamp-2">
-                            {a.description}
-                          </p>
-                        )}
-
-                        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
-                          <span className="inline-flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            Due {formatDateTime(a.deadline)}
-                          </span>
-                          {a.attachmentUrl && (
-                            <a
-                              href={a.attachmentUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-indigo-600 hover:underline"
-                            >
-                              <Paperclip className="h-3 w-3" />
-                              Attachment
-                            </a>
-                          )}
-                        </div>
-                      </div>
+              <div
+                key={a.id}
+                className="rounded-3xl border-2 border-[#302365]/12 bg-white p-5 shadow-[3px_3px_0px_rgba(48,35,101,0.06)] transition hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_rgba(48,35,101,0.1)]"
+              >
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex items-start gap-3.5">
+                    <div
+                      className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl border-2 shadow-xs ${
+                        overdue
+                          ? 'border-[#E87999] bg-[#FCE4EB] text-[#C22B58]'
+                          : 'border-[#2587B8] bg-[#DFF2FC] text-[#2587B8]'
+                      }`}
+                    >
+                      <FileText className="h-6 w-6" />
                     </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="font-heading text-lg font-bold text-[#302365]">
+                          {a.title}
+                        </h3>
+                        {overdue ? (
+                          <Badge variant="danger">Closed</Badge>
+                        ) : (
+                          <Badge variant="success">Open ✦</Badge>
+                        )}
+                      </div>
 
-                    {/* Actions */}
-                    <div className="flex shrink-0 gap-1 sm:flex-col sm:items-stretch">
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => setSubmissionsFor(a)}
-                        className="flex-1 sm:flex-initial"
-                      >
-                        <Users className="h-3.5 w-3.5" />
-                        Submissions
-                      </Button>
-                      <button
-                        onClick={() => openEdit(a)}
-                        className="rounded-lg p-2 text-slate-400 hover:bg-indigo-50 hover:text-indigo-600"
-                        title="Edit"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => setDeleting(a)}
-                        className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600"
-                        title="Delete"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      {a.description && (
+                        <p className="mt-1.5 font-medium text-sm text-[#302365]/80 line-clamp-2 leading-relaxed">
+                          {a.description}
+                        </p>
+                      )}
+
+                      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-semibold text-[#302365]/70">
+                        <span className="inline-flex items-center gap-1">
+                          <Clock className="h-3.5 w-3.5" />
+                          Due: {formatDateTime(a.deadline)}
+                        </span>
+                        {a.attachmentUrl && (
+                          <a
+                            href={a.attachmentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 font-bold text-[#2587B8] hover:underline"
+                          >
+                            <Paperclip className="h-3.5 w-3.5" />
+                            Download Attachment
+                          </a>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </CardBody>
-              </Card>
+
+                  {/* Actions */}
+                  <div className="flex shrink-0 items-center gap-1.5 sm:self-center">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => setSubmissionsFor(a)}
+                    >
+                      <Users className="h-4 w-4" />
+                      Submissions
+                    </Button>
+                    <button
+                      onClick={() => openEdit(a)}
+                      className="rounded-xl border border-[#302365]/15 bg-white p-2 text-[#302365] hover:bg-[#DFF2FC] hover:text-[#2587B8] transition cursor-pointer shadow-xs"
+                      title="Edit Assignment"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => setDeleting(a)}
+                      className="rounded-xl border border-[#302365]/15 bg-white p-2 text-[#302365] hover:bg-[#FCE4EB] hover:text-[#C22B58] transition cursor-pointer shadow-xs"
+                      title="Delete Assignment"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
             );
           })}
         </div>
       )}
 
       {isFetching && !isLoading && (
-        <p className="mt-2 text-center text-xs text-slate-400">Refreshing…</p>
+        <p className="text-center font-heading text-xs font-bold text-[#302365]/50">
+          Syncing assignments…
+        </p>
       )}
 
       {/* Create modal */}
@@ -331,62 +338,62 @@ export const TeacherAssignmentsPage = () => {
           setPickedFile(null);
           reset();
         }}
-        title="Create Assignment"
+        title="Create New Assignment 📝"
         size="lg"
       >
         <form onSubmit={handleSubmit(onSubmitCreate)} className="space-y-4">
-          <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
-            For:{' '}
-            <strong>
+          <div className="rounded-2xl border-2 border-[#302365]/10 bg-[#FFF6D8] px-4 py-2.5 font-heading text-xs text-[#302365]">
+            Target Subject:{' '}
+            <strong className="text-[#2587B8]">
               {currentSubject?.code} — {currentSubject?.name?.trim()}
             </strong>
           </div>
 
           <Input
-            label="Title"
-            placeholder="Chapter 5 — Neural Networks"
+            label="Assignment Title"
+            placeholder="e.g. Lab Experiment 4 — Graph Traversals"
             {...register('title')}
             error={errors.title?.message}
           />
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
-              Description
+            <label className="mb-1.5 block font-heading text-xs font-bold uppercase tracking-wider text-[#302365]">
+              Description & Instructions
             </label>
             <textarea
               rows={4}
-              placeholder="Instructions for the students…"
+              placeholder="Provide clear guidelines, problem statement, and submission requirements…"
               {...register('description')}
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+              className="w-full rounded-xl border-2 border-[#302365]/20 bg-white px-3.5 py-2.5 font-medium text-sm text-[#302365] outline-none transition placeholder:text-[#302365]/40 focus:border-[#302365] focus:ring-2 focus:ring-[#DCD2F5]"
             />
             {errors.description && (
-              <p className="mt-1 text-xs text-red-600">
+              <p className="mt-1 text-xs font-medium text-[#C22B58]">
                 {errors.description.message}
               </p>
             )}
           </div>
 
           <Input
-            label="Deadline"
+            label="Deadline Date & Time"
             type="datetime-local"
             {...register('deadline')}
             error={errors.deadline?.message}
           />
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
-              Attachment (optional)
+            <label className="mb-1.5 block font-heading text-xs font-bold uppercase tracking-wider text-[#302365]">
+              Upload Attachment (optional)
             </label>
             <input
               ref={fileRef}
               type="file"
               onChange={(e) => setPickedFile(e.target.files?.[0] ?? null)}
-              className="block w-full text-sm text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-3 file:py-2 file:text-xs file:font-medium file:text-indigo-700 hover:file:bg-indigo-100 sm:file:px-4 sm:file:text-sm"
+              className="block w-full text-sm text-[#302365] file:mr-3 file:rounded-xl file:border-2 file:border-[#302365]/15 file:bg-[#DFF2FC] file:px-4 file:py-2 file:font-heading file:text-xs file:font-bold file:text-[#2587B8] hover:file:bg-[#ccebf9] cursor-pointer"
             />
             {pickedFile && (
-              <p className="mt-1 text-xs text-slate-500">
-                <Paperclip className="mr-1 inline h-3 w-3" />
-                {pickedFile.name}
+              <p className="mt-1.5 font-heading text-xs font-bold text-[#2587B8]">
+                <Paperclip className="mr-1 inline h-3.5 w-3.5" />
+                Selected: {pickedFile.name}
               </p>
             )}
           </div>
@@ -404,7 +411,7 @@ export const TeacherAssignmentsPage = () => {
               Cancel
             </Button>
             <Button type="submit" loading={createMutation.isPending}>
-              Create
+              Create Assignment
             </Button>
           </div>
         </form>
@@ -425,16 +432,16 @@ export const TeacherAssignmentsPage = () => {
           />
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
+            <label className="mb-1.5 block font-heading text-xs font-bold uppercase tracking-wider text-[#302365]">
               Description
             </label>
             <textarea
               rows={4}
               {...registerEdit('description')}
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+              className="w-full rounded-xl border-2 border-[#302365]/20 bg-white px-3.5 py-2.5 font-medium text-sm text-[#302365] outline-none transition placeholder:text-[#302365]/40 focus:border-[#302365] focus:ring-2 focus:ring-[#DCD2F5]"
             />
             {editErrors.description && (
-              <p className="mt-1 text-xs text-red-600">
+              <p className="mt-1 text-xs font-medium text-[#C22B58]">
                 {editErrors.description.message}
               </p>
             )}
@@ -466,7 +473,7 @@ export const TeacherAssignmentsPage = () => {
       <ConfirmDialog
         open={!!deleting}
         title="Delete assignment?"
-        message={`Permanently remove "${deleting?.title}" and all its submissions? This cannot be undone.`}
+        message={`Permanently remove "${deleting?.title}" and all its student submissions? This cannot be undone.`}
         danger
         loading={deleteMutation.isPending}
         onCancel={() => setDeleting(null)}

@@ -21,31 +21,30 @@ export const Modal = ({ open, onClose, title, children, size = 'md' }: Props) =>
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/50 p-0 sm:items-center sm:p-4"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-[#302365]/45 backdrop-blur-[2px] p-0 sm:items-center sm:p-4 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
         className={cn(
-          // Mobile: full-width sheet from bottom
-          'w-full rounded-t-2xl bg-white shadow-xl sm:rounded-xl',
+          'w-full rounded-t-3xl sm:rounded-3xl border-2 border-[#302365]/15 bg-[#FFFDF7] shadow-[6px_6px_0px_rgba(48,35,101,0.15)]',
           'max-h-[92vh] overflow-y-auto',
           sizes[size]
         )}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 sm:px-5">
-          <h3 className="truncate text-base font-semibold text-slate-800 sm:text-lg">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b-2 border-[#302365]/10 bg-[#DFF2FC]/50 px-5 py-3.5">
+          <h3 className="truncate font-heading text-lg font-bold text-[#302365]">
             {title}
           </h3>
           <button
             onClick={onClose}
-            className="shrink-0 rounded-lg p-1 text-slate-500 hover:bg-slate-100"
+            className="shrink-0 rounded-xl border border-[#302365]/20 bg-white p-1.5 text-[#302365] hover:bg-[#FCE4EB] hover:text-[#C22B58] transition shadow-[1px_1px_0px_rgba(48,35,101,0.1)] cursor-pointer"
             aria-label="Close"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="p-4 sm:p-5">{children}</div>
+        <div className="p-5 sm:p-6 text-[#302365]">{children}</div>
       </div>
     </div>
   );

@@ -54,22 +54,27 @@ export const OAuthCallbackPage = () => {
 }, [params, navigate, setAuth]);
 
   return (
-    <div className="grid min-h-screen place-items-center bg-slate-50">
-      <div className="text-center">
+    <div className="grid min-h-screen place-items-center bg-[#FFF6D8] p-4">
+      <div className="max-w-sm w-full rounded-3xl border-2 border-[#302365]/15 bg-white p-8 text-center shadow-[6px_6px_0px_rgba(48,35,101,0.1)]">
         {error ? (
           <>
-            <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-red-100 text-red-600">
+            <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#FCE4EB] border-2 border-[#F5A3BA] text-[#C22B58]">
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </div>
-            <p className="mt-4 text-sm font-medium text-slate-800">{error}</p>
-            <p className="mt-1 text-xs text-slate-500">Redirecting to login…</p>
+            <p className="mt-4 font-heading text-base font-bold text-[#302365]">{error}</p>
+            <p className="mt-1 text-xs font-medium text-[#302365]/60">Redirecting to login…</p>
           </>
         ) : (
           <>
-            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600" />
-            <p className="mt-4 text-sm text-slate-500">Signing you in…</p>
+            <div className="mx-auto flex items-center justify-center gap-1.5 py-4">
+              <span className="h-3.5 w-3.5 rounded-full bg-[#2587B8] animate-bounce [animation-delay:-0.3s]" />
+              <span className="h-3.5 w-3.5 rounded-full bg-[#62A66C] animate-bounce [animation-delay:-0.15s]" />
+              <span className="h-3.5 w-3.5 rounded-full bg-[#E87999] animate-bounce" />
+            </div>
+            <p className="mt-2 font-heading text-lg font-bold text-[#302365]">Signing you in…</p>
+            <p className="mt-1 text-xs font-medium text-[#302365]/60">Preparing your campus dashboard ✨</p>
           </>
         )}
       </div>

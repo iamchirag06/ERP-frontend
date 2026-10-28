@@ -212,13 +212,21 @@ export const AdminStudentsPage = () => {
     });
   };
 
+  const PASTEL_BG = [
+    'bg-[#DFF2FC]/50 border-[#2587B8]/30',
+    'bg-[#E8F5DF]/50 border-[#62A66C]/30',
+    'bg-[#FFF0C9]/50 border-[#E89D42]/30',
+    'bg-[#FCE4EB]/50 border-[#E87999]/30',
+    'bg-[#DCD2F5]/50 border-[#7860B8]/30',
+  ];
+
   const renderDesktopTable = () => (
-    <div className="hidden md:block">
+    <div className="hidden md:block overflow-hidden rounded-2xl border-2 border-[#302365]/10 bg-white shadow-[3px_3px_0px_rgba(48,35,101,0.06)]">
       <Table>
         <THead>
           <TR>
             <TH>Roll No</TH>
-            <TH>Name</TH>
+            <TH>Student Name</TH>
             <TH>Branch</TH>
             <TH>Sem</TH>
             <TH>Batch</TH>
@@ -234,27 +242,31 @@ export const AdminStudentsPage = () => {
               </TD>
               <TD>
                 <div className="flex flex-col">
-                  <span className="font-medium text-slate-800">{s.name}</span>
-                  <span className="text-xs text-slate-400">{s.email}</span>
+                  <span className="font-heading font-semibold text-[#302365]">{s.name}</span>
+                  <span className="text-xs text-[#302365]/60">{s.email}</span>
                 </div>
               </TD>
-              <TD className="text-slate-600">{s.branch?.code ?? '—'}</TD>
-              <TD className="text-slate-600">{s.semester}</TD>
-              <TD className="text-slate-600">{s.batch}</TD>
-              <TD className="text-slate-600">
-                {s.cgpa != null ? s.cgpa.toFixed(2) : '—'}
+              <TD className="font-medium text-[#302365]">{s.branch?.code ?? '—'}</TD>
+              <TD className="text-[#302365]/80">Sem {s.semester}</TD>
+              <TD className="text-[#302365]/80">{s.batch}</TD>
+              <TD className="font-medium text-[#302365]">
+                {s.cgpa != null ? (
+                  <Badge variant="success">{s.cgpa.toFixed(2)}</Badge>
+                ) : (
+                  '—'
+                )}
               </TD>
               <TD className="text-right">
-                <div className="flex justify-end gap-1">
+                <div className="flex justify-end gap-1.5">
                   <button
                     onClick={() => openEdit(s)}
-                    className="rounded-lg p-2 text-slate-400 hover:bg-indigo-50 hover:text-indigo-600"
+                    className="rounded-xl border border-transparent p-2 text-slate-400 transition hover:border-[#2587B8]/20 hover:bg-[#DFF2FC] hover:text-[#2587B8] active:scale-95"
                   >
                     <Pencil className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => setDeleting(s)}
-                    className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                    className="rounded-xl border border-transparent p-2 text-slate-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 active:scale-95"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -269,67 +281,70 @@ export const AdminStudentsPage = () => {
 
   const renderMobileCards = () => (
     <div className="space-y-3 md:hidden">
-      {filtered.map((s) => (
-        <Card key={s.id}>
-          <CardBody>
-            <div className="flex items-start gap-3">
-              {s.profileImageUrl ? (
-                <img
-                  src={s.profileImageUrl}
-                  alt={s.name}
-                  className="h-11 w-11 shrink-0 rounded-full object-cover"
-                />
-              ) : (
-                <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700">
-                  {initials(s.name)}
+      {filtered.map((s, idx) => (
+        <div
+          key={s.id}
+          className={`rounded-2xl border-2 p-4 shadow-[3px_3px_0px_rgba(48,35,101,0.06)] ${
+            PASTEL_BG[idx % PASTEL_BG.length]
+          }`}
+        >
+          <div className="flex items-start gap-3">
+            {s.profileImageUrl ? (
+              <img
+                src={s.profileImageUrl}
+                alt={s.name}
+                className="h-12 w-12 shrink-0 rounded-2xl border-2 border-[#302365]/15 object-cover"
+              />
+            ) : (
+              <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border-2 border-[#302365]/15 bg-[#DCD2F5] font-heading text-sm font-bold text-[#302365]">
+                {initials(s.name)}
+              </div>
+            )}
+
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate font-heading font-bold text-[#302365]">{s.name}</p>
+                  <p className="text-xs font-medium text-[#302365]/60">{s.rollNo}</p>
                 </div>
-              )}
-
-              <div className="min-w-0 flex-1">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="truncate font-medium text-slate-800">{s.name}</p>
-                    <p className="text-xs text-slate-400">{s.rollNo}</p>
-                  </div>
-                  <div className="flex shrink-0 gap-1">
-                    <button
-                      onClick={() => openEdit(s)}
-                      className="rounded-lg p-2 text-slate-400 hover:bg-indigo-50 hover:text-indigo-600"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => setDeleting(s)}
-                      className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-
-                <p className="mt-1 truncate text-xs text-slate-500">{s.email}</p>
-
-                <div className="mt-2 flex flex-wrap gap-1.5 text-xs">
-                  {s.branch && <Badge variant="info">{s.branch.code}</Badge>}
-                  <Badge variant="default">Sem {s.semester}</Badge>
-                  <Badge variant="default">{s.batch}</Badge>
-                  {s.cgpa != null && (
-                    <Badge variant="success">CGPA {s.cgpa.toFixed(2)}</Badge>
-                  )}
+                <div className="flex shrink-0 gap-1">
+                  <button
+                    onClick={() => openEdit(s)}
+                    className="rounded-xl border border-transparent bg-white/70 p-2 text-slate-500 shadow-sm transition hover:bg-white hover:text-[#2587B8] active:scale-95"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => setDeleting(s)}
+                    className="rounded-xl border border-transparent bg-white/70 p-2 text-slate-500 shadow-sm transition hover:bg-white hover:text-red-600 active:scale-95"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
+
+              <p className="mt-1 truncate text-xs text-[#302365]/70">{s.email}</p>
+
+              <div className="mt-2.5 flex flex-wrap gap-1.5 text-xs">
+                {s.branch && <Badge variant="info">{s.branch.code}</Badge>}
+                <Badge variant="default">Sem {s.semester}</Badge>
+                <Badge variant="default">{s.batch}</Badge>
+                {s.cgpa != null && (
+                  <Badge variant="success">CGPA {s.cgpa.toFixed(2)}</Badge>
+                )}
+              </div>
             </div>
-          </CardBody>
-        </Card>
+          </div>
+        </div>
       ))}
     </div>
   );
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         title="Students"
-        subtitle="Manage student records across branches and batches."
+        subtitle="Manage student directory across departments and graduation batches."
         action={
           <Button onClick={() => setAddOpen(true)}>
             <Plus className="h-4 w-4" />
@@ -338,7 +353,7 @@ export const AdminStudentsPage = () => {
         }
       />
 
-      <div className="mb-4 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 rounded-2xl border-2 border-[#302365]/10 bg-white p-4 shadow-[3px_3px_0px_rgba(48,35,101,0.06)] sm:grid-cols-2 lg:grid-cols-4">
         <Select
           label="Branch"
           value={filterBranch}
@@ -383,32 +398,32 @@ export const AdminStudentsPage = () => {
               setFilterBatch('');
               setSearch('');
             }}
-            className="h-10 text-sm text-slate-500 hover:text-slate-800"
+            className="h-10 text-sm font-heading font-semibold text-[#302365]/70 hover:text-[#302365] transition"
           >
-            Clear all
+            Clear all filters
           </button>
         </div>
       </div>
 
-      <div className="mb-5 flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2">
-        <Search className="h-4 w-4 text-slate-400" />
+      <div className="flex items-center gap-2.5 rounded-2xl border-2 border-[#302365]/10 bg-white px-4 py-2.5 shadow-[3px_3px_0px_rgba(48,35,101,0.06)]">
+        <Search className="h-4 w-4 text-[#302365]/40" />
         <input
-          className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
-          placeholder="Search by name, email or roll number…"
+          className="w-full bg-transparent text-sm font-medium text-[#302365] outline-none placeholder:text-[#302365]/40"
+          placeholder="Search students by name, email or roll number…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
         {search && (
           <button
             onClick={() => setSearch('')}
-            className="text-xs text-slate-400 hover:text-slate-600"
+            className="text-xs font-semibold text-[#302365]/50 hover:text-[#302365]"
           >
-            clear
+            Clear
           </button>
         )}
       </div>
 
-      <p className="mb-3 text-xs text-slate-400">
+      <p className="text-xs font-medium text-[#302365]/60">
         Showing {filtered.length} of {allStudents?.length ?? 0} students
       </p>
 

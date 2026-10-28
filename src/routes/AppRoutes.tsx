@@ -29,34 +29,69 @@ import { AdminTeachersPage } from '@/features/admin/TeachersPage';
 
 
 
+import { DoodleLaptop, DoodleClipboard, SpeechBubbleTag, SparkleIcon } from '@/components/ui/Illustrations';
+
 const Unauthorized = () => (
-  <div className="grid min-h-screen place-items-center">
-    <div className="text-center">
-      <h1 className="text-3xl font-bold">403 — Unauthorized</h1>
-      <p className="mt-2 text-slate-500">You don't have access to this page.</p>
+  <div className="grid min-h-screen place-items-center bg-[#FFF6D8] p-4">
+    <div className="max-w-md w-full text-center rounded-3xl border-2 border-[#302365]/15 bg-white p-8 shadow-[6px_6px_0px_rgba(48,35,101,0.1)]">
+      <div className="relative inline-block mb-3">
+        <DoodleLaptop className="h-20 w-20" />
+        <div className="absolute -top-3 -right-6">
+          <SpeechBubbleTag className="bg-[#FCE4EB] text-[#C22B58]">
+            Access Denied! 🚫
+          </SpeechBubbleTag>
+        </div>
+      </div>
+      <h1 className="font-heading text-3xl font-bold text-[#302365]">403 — Unauthorized</h1>
+      <p className="mt-2 text-sm font-medium text-[#302365]/70">
+        You don't have permission to access this campus page.
+      </p>
+      <a
+        href="/login"
+        className="mt-6 inline-flex items-center gap-2 rounded-xl border-2 border-[#302365] bg-[#302365] px-5 py-2.5 font-heading text-sm font-bold text-[#FFF6D8] shadow-[2px_2px_0px_rgba(48,35,101,0.3)] hover:bg-[#403085] transition"
+      >
+        Return to Login
+      </a>
     </div>
   </div>
 );
 
 const ComingSoon = ({ title }: { title: string }) => (
-  <div className="grid place-items-center py-24 text-center">
-    <div>
-      <h2 className="text-xl font-semibold text-slate-800">{title}</h2>
-      <p className="mt-1 text-sm text-slate-500">This page is coming soon.</p>
+  <div className="grid place-items-center py-20 px-4 text-center">
+    <div className="max-w-md w-full rounded-3xl border-2 border-[#302365]/15 bg-white p-8 shadow-[4px_4px_0px_rgba(48,35,101,0.08)]">
+      <div className="relative inline-block mb-3">
+        <DoodleClipboard className="h-16 w-16" />
+        <SparkleIcon className="absolute -top-2 -right-3 h-5 w-5 text-amber-400" />
+      </div>
+      <h2 className="font-heading text-2xl font-bold text-[#302365]">{title}</h2>
+      <p className="mt-2 text-sm font-medium text-[#302365]/70">
+        We're working on this feature! It will be available soon.
+      </p>
     </div>
   </div>
 );
 
 const NotFound = () => (
-  <div className="grid min-h-screen place-items-center bg-slate-50">
-    <div className="text-center">
-      <h1 className="text-5xl font-bold text-slate-900">404</h1>
-      <p className="mt-2 text-slate-500">Page not found.</p>
+  <div className="grid min-h-screen place-items-center bg-[#FFF6D8] p-4">
+    <div className="max-w-md w-full text-center rounded-3xl border-2 border-[#302365]/15 bg-white p-8 shadow-[6px_6px_0px_rgba(48,35,101,0.1)]">
+      <div className="relative inline-block mb-3">
+        <DoodleLaptop className="h-20 w-20" />
+        <div className="absolute -top-3 -right-8">
+          <SpeechBubbleTag className="bg-[#FFF0C9] text-[#995E05]">
+            Lost on campus? 🤔
+          </SpeechBubbleTag>
+        </div>
+      </div>
+      <h1 className="font-heading text-6xl font-extrabold text-[#302365]">404</h1>
+      <p className="mt-2 font-heading text-lg font-bold text-[#302365]">Page Not Found</p>
+      <p className="mt-1 text-sm font-medium text-[#302365]/70">
+        The page you are looking for doesn't exist or has moved.
+      </p>
       <a
         href="/login"
-        className="mt-4 inline-block rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+        className="mt-6 inline-flex items-center gap-2 rounded-xl border-2 border-[#302365] bg-[#302365] px-6 py-2.5 font-heading text-sm font-bold text-[#FFF6D8] shadow-[2px_2px_0px_rgba(48,35,101,0.3)] hover:bg-[#403085] transition"
       >
-        Go to login
+        Go to Login
       </a>
     </div>
   </div>
